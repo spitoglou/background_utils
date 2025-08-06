@@ -21,8 +21,9 @@ Create a Python 3.12+ project that hosts personal automation and production tool
 ## Deliverables
 - Working package installable via `pip install -e .[dev]`
 - CLI entry point `background-utils`
-- Service entry point `background-utils-service`
-- Sandbox entry point `background-utils-sandbox`
+- Service entry points:
+  - Combined manager: `background-utils-service` (with Windows tray icon)
+  - Individual services: `background-utils-service-example`, `background-utils-service-battery`, `background-utils-service-my`
 - Examples demonstrating CLI, service, and sandbox usage
 - Initial tests
 - Documentation and helper scripts

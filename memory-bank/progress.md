@@ -5,9 +5,18 @@
 - Typer-based CLI entry `background-utils`
 - CLI command groups:
   - `example` with `hello`, `time`
-  - `wifi` with `show-passwords` (Windows-only), Rich table or JSON output
-- Example long-running service entry `background-utils-service` with graceful shutdown
-- Infinite background process entry `background-utils-sandbox` for system monitoring
+  - `wifi` with `show-passwords`, `list-networks` (Windows-only), Rich table or JSON output
+- **FULLY FUNCTIONAL** Combined services manager with Windows tray icon (pystray + Pillow):
+  - Starts services concurrently on dedicated threads
+  - **WORKING RELIABLY**: Tray menu: View Log, Stop Services, Restart Services, Exit
+  - **FIXED**: All menu operations work without blocking the tray icon
+  - **FIXED**: Services actually stop/restart when requested from tray menu
+  - **FIXED**: Ctrl+C properly stops services and exits application
+  - Graceful shutdown with shared stop_event and 10s timeout
+  - **RESOLVED**: Threading conflicts that prevented menu operations
+- Individual service runners:
+  - `background-utils-service-example`, `background-utils-service-battery`, `background-utils-service-my`
+- Windows file logging at `%LOCALAPPDATA%/background-utils/background-utils.log` (rotating)
 - Shared configuration via pydantic-settings with `.env` support
 - Centralized logging via Loguru with Rich sink
 - Helper scripts for service launch (PowerShell/Bash)
@@ -25,14 +34,21 @@
 - Documentation enhancements: usage, troubleshooting, contribution guide
 
 ## Current status
-- Foundation complete and operational
-- First real-world utility (Wi‑Fi passwords) integrated and accessible
-- Sandbox process for system monitoring implemented
+- **MILESTONE ACHIEVED**: Foundation complete and fully operational
+- **MILESTONE ACHIEVED**: Combined manager with reliable Windows 11 tray integration
+- **MILESTONE ACHIEVED**: All tray menu operations working correctly
+- Wi‑Fi utilities and sandbox present
 - Ready for iterative improvements in tests, CI, and documentation
 
 ## Known issues / considerations
 - Wi‑Fi command relies on `netsh` and may require admin privileges; permission errors should be handled
 - Platform-specific commands need guards or alternative implementations
+
+## Technical Achievements
+- **Solved Windows 11 tray compatibility**: Replaced native Win32 implementation with robust pystray solution
+- **Resolved threading conflicts**: Fixed manager reference issues that caused silent thread failures
+- **Established reliable threading model**: pystray in daemon thread, background workers for menu operations
+- **Proven service lifecycle management**: Stop/restart operations work correctly with proper synchronization
 
 ## Next milestones
 1) Add CLI tests and coverage reporting

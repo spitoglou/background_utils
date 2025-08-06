@@ -2,6 +2,10 @@
 requires = ["setuptools>=69", "wheel"]
 build-backend = "setuptools.build_meta"
 
+[tool.background_utils]
+log_dir_windows = "{LOCALAPPDATA}\\background-utils"
+log_file = "background-utils.log"
+
 [project]
 name = "background-utils"
 version = "0.1.0"
@@ -19,6 +23,9 @@ dependencies = [
   "pydantic-settings>=2.4",
   "loguru>=0.7",
   "psutil>=5.9",
+  "pystray>=0.19",
+  "Pillow>=10.0",
+  "pywin32>=306; platform_system == 'Windows'",
 ]
 
 [project.optional-dependencies]
@@ -32,8 +39,14 @@ dev = [
 
 [project.scripts]
 background-utils = "background_utils.cli.app:main"
+
+# Combined manager (runs all services)
 background-utils-service = "background_utils.services.manager:main"
-background-utils-battery = "background_utils.services.battery_monitor:main"
+
+# Individual services
+background-utils-service-example = "background_utils.services.example_service:main"
+background-utils-service-battery = "background_utils.services.battery_monitor:main"
+background-utils-service-my = "background_utils.services.my_service:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

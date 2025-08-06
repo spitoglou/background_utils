@@ -9,8 +9,12 @@
   - Shared: `background_utils.config`, `background_utils.logging`, and future `background_utils.utils`
 - Entry points via `pyproject.toml`:
   - `background-utils` → `background_utils.cli.app:main`
-  - `background-utils-service` → `background_utils.services.example_service:main`
-  - `background-utils-sandbox` → `background_utils.sandbox:main`
+  - Combined services with tray:
+    - `background-utils-service` → `background_utils.services.manager:main`
+  - Individual services:
+    - `background-utils-service-example` → `background_utils.services.example_service:main`
+    - `background-utils-service-battery` → `background_utils.services.battery_monitor:main`
+    - `background-utils-service-my` → `background_utils.services.my_service:main`
 
 ## Key Technical Decisions
 - Typer for ergonomic CLI with sub-apps per domain (e.g., `example`, `wifi`)
@@ -30,11 +34,15 @@
   - `app.add_typer(wifi_app, name="wifi")`
 
 ## Service Pattern
-- `example_service.py` demonstrates:
-  - Settings loading (interval, environment) via `load_settings()`
-  - Single-time logging initialization
-  - Graceful shutdown using `signal` handlers and a `threading.Event`
-  - Ticking loop at configurable interval with error handling and finalization logs
+- Cooperative services expose `run(stop_event: threading.Event)` and optionally keep a `main()` for standalone runs.
+- `ServiceManager` (manager.py):
+  - Starts each service on its own thread
+  - Installs signal handlers only when running in the main thread
+  - Shares a `stop_event` for graceful shutdown with 10s timeout
+  - Continues other services if one crashes (logs exception)
+- `TrayController` integrates a Windows system tray icon (pystray + Pillow):
+  - Actions: View Log (open Notepad), Stop Services, Restart Services, Exit
+  - Ensures tray visibility on startup; hides and force-exits on Exit to avoid ghost icons
 
 ## Sandbox Pattern
 - `sandbox.py` demonstrates:
@@ -57,6 +65,7 @@
 
 ## Logging Pattern
 - `background_utils.logging.setup_logging()` sets a Rich console sink for Loguru
+- Adds a rotating file sink on Windows at `%LOCALAPPDATA%/background-utils/background-utils.log`
 - Consistent structured format; use `logger.info/debug/warning/exception` across code
 
 ## Configuration Pattern

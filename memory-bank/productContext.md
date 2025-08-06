@@ -12,9 +12,10 @@ To centralize personal automation and production tools into a single, cohesive P
 ## How it works
 - A single installable package providing:
   - A Typer-based CLI (`background-utils`) with discoverable subcommands
-  - A service runner entry point (`background-utils-service`)
+  - A combined service runner (`background-utils-service`) that starts multiple services concurrently and integrates a Windows tray icon (pystray) to Stop/Restart services and View Log
+  - Individual service runners for targeted runs (`background-utils-service-example`, `background-utils-service-battery`, `background-utils-service-my`)
   - Shared settings via pydantic-settings with `.env` support
-  - Unified logging via Loguru with Rich output
+  - Unified logging via Loguru with Rich output and a rotating file sink at `%LOCALAPPDATA%/background-utils/background-utils.log` (Windows)
 - Extensible structure to add new CLIs/services with minimal boilerplate
 
 ## Current user experience
