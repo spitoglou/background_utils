@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import importlib
-from typing import Optional, cast
+from typing import cast
 
 import typer
 from rich.console import Console
@@ -12,13 +12,15 @@ console = Console()
 app = typer.Typer(no_args_is_help=True, add_completion=False, help="Background Utilities CLI")
 
 
-def _lazy_import(module_path: str, attr: Optional[str] = None):
+def _lazy_import(module_path: str, attr: str | None = None) -> object:
     module = importlib.import_module(module_path)
     return getattr(module, attr) if attr else module
 
 
 @app.callback()
-def init(verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose logs")) -> None:
+def init(
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose logs")
+) -> None:
     """
     Root CLI initializer.
     """

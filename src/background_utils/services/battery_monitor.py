@@ -3,7 +3,7 @@ import time
 
 import psutil
 
-from background_utils.logging import setup_logging, logger
+from background_utils.logging import logger, setup_logging
 
 
 def run(stop_event: threading.Event, interval_seconds: float = 60.0) -> None:
@@ -22,7 +22,11 @@ def run(stop_event: threading.Event, interval_seconds: float = 60.0) -> None:
                     logger.info("Power is plugged in.")
                 else:
                     logger.info("Power is not plugged in.")
-                if battery.percent is not None and battery.percent < 15 and not battery.power_plugged:
+                if (
+                    battery.percent is not None 
+                    and battery.percent < 15 
+                    and not battery.power_plugged
+                ):
                     logger.warning("Battery low! Plug in the charger.")
             else:
                 logger.warning("Battery information not available")

@@ -4,13 +4,12 @@ import json
 import os
 import subprocess
 from dataclasses import dataclass
-from typing import List, Optional, Tuple
 
 import typer
 from rich.console import Console
 from rich.table import Table
 
-from background_utils.logging import setup_logging, logger
+from background_utils.logging import logger, setup_logging
 
 # Force UTF-8 on Windows consoles to avoid cp1252 encoding issues (e.g., for dashes)
 if os.name == "nt":
@@ -24,20 +23,20 @@ app = typer.Typer(no_args_is_help=True, add_completion=False, help="Wi-Fi utilit
 @dataclass(frozen=True)
 class WifiProfile:
     name: str
-    password: Optional[str]
+    password: str | None
 
 
-def _run(cmd: List[str]) -> Tuple[int, str, str]:
+def _run(cmd: list[str]) -> tuple[int, str, str]:
     proc = subprocess.run(cmd, capture_output=True, text=True, shell=False)
     return proc.returncode, proc.stdout, proc.stderr
 
 
-def _list_profiles() -> List[str]:
+def _list_profiles() -> list[str]:
     # Windows: netsh wlan show profiles
     code, out, err = _run(["netsh", "wlan", "show", "profiles"])
     if code != 0:
         raise RuntimeError(f"Failed to list profiles: {err or out}")
-    profiles: List[str] = []
+    profiles: list[str] = []
     for line in out.splitlines():
         # Lines like: "    All User Profile     : MyWifi"
         if ":" in line and "Profile" in line:
@@ -49,7 +48,7 @@ def _list_profiles() -> List[str]:
     return profiles
 
 
-def _get_profile_key(name: str) -> Optional[str]:
+def _get_profile_key(name: str) -> str | None:
     # netsh wlan show profile name="SSID" key=clear
     code, out, err = _run(["netsh", "wlan", "show", "profile", f'name="{name}"', "key=clear"])
     if code != 0:
@@ -62,14 +61,14 @@ def _get_profile_key(name: str) -> Optional[str]:
     return None
 
 
-def _list_networks() -> List[dict]:
+def _list_networks() -> list[dict[str, str]]:
     # Windows: netsh wlan show networks
     code, out, err = _run(["netsh", "wlan", "show", "networks"])
     if code != 0:
         raise RuntimeError(f"Failed to list networks: {err or out}")
     
     networks = []
-    current_network = {}
+    current_network: dict[str, str] = {}
     
     for line in out.splitlines():
         line = line.strip()
@@ -104,7 +103,7 @@ def _list_networks() -> List[dict]:
     return networks
 
 
-def _gather_profiles() -> List[WifiProfile]:
+def _gather_profiles() -> list[WifiProfile]:
     profiles = []
     for name in _list_profiles():
         pwd = _get_profile_key(name)
@@ -114,7 +113,7 @@ def _gather_profiles() -> List[WifiProfile]:
 
 @app.command("show-passwords")
 def show_passwords(
-    output: Optional[str] = typer.Option(
+    output: str | None = typer.Option(
         None,
         "--output",
         "-o",
@@ -132,7 +131,7 @@ def show_passwords(
         profiles = _gather_profiles()
     except Exception as exc:  # noqa: BLE001
         logger.exception(f"Failed to fetch Wi-Fi profiles: {exc}")
-        raise typer.Exit(code=1)
+        raise typer.Exit(code=1) from exc
 
     if output == "json":
         data = [{"name": p.name, "password": p.password} for p in profiles]
@@ -153,7 +152,7 @@ def show_passwords(
 
 @app.command("list-networks")
 def list_networks(
-    output: Optional[str] = typer.Option(
+    output: str | None = typer.Option(
         None,
         "--output",
         "-o",
@@ -170,7 +169,7 @@ def list_networks(
         networks = _list_networks()
     except Exception as exc:  # noqa: BLE001
         logger.exception(f"Failed to fetch Wi-Fi networks: {exc}")
-        raise typer.Exit(code=1)
+        raise typer.Exit(code=1) from exc
 
     if output == "json":
         console.print_json(json.dumps(networks, ensure_ascii=False, indent=2))

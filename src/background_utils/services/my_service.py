@@ -4,7 +4,7 @@ import threading
 import time
 
 from background_utils.config import load_settings
-from background_utils.logging import setup_logging, logger
+from background_utils.logging import logger, setup_logging
 
 
 def run(stop_event: threading.Event) -> None:

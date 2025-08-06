@@ -10,7 +10,7 @@ Personal automation and production tools for Python 3.12+. Includes Typer-based 
 2) Run CLI:
     background-utils --help
 
-3) Run example service (foreground):
+3) Run services with system tray (Windows):
     background-utils-service
 
 ## Project structure
@@ -23,6 +23,30 @@ Personal automation and production tools for Python 3.12+. Includes Typer-based 
   - logging.py: loguru configuration
 - scripts: helpers for service process management
 - tests: pytest tests
+
+## Services and System Tray (Windows)
+
+The main service entry point `background-utils-service` launches a system tray icon that manages long-running services:
+
+- **Tray Menu Options:**
+  - **View Log**: Opens the log file in Notepad (%LOCALAPPDATA%\background-utils\background-utils.log)
+  - **Stop Services**: Gracefully stops all running services
+  - **Restart Services**: Stops current services and starts fresh instances
+  - **Exit**: Stops services and exits the application
+
+- **Service Management:**
+  - Services run on dedicated threads with cooperative shutdown via shared stop_event
+  - Graceful shutdown with 10-second timeout for each service
+  - Individual service entry points available for testing:
+    - background-utils-service-example
+    - background-utils-service-battery
+    - background-utils-service-my
+
+- **Windows Compatibility:**
+  - Fully functional on Windows 11 with reliable tray icon behavior
+  - No ghost icons - proper cleanup on exit
+  - Responsive tray menu with non-blocking operations
+  - Ctrl+C support for console-based shutdown
 
 ## Development
 
@@ -42,4 +66,4 @@ Common commands:
 - pyproject.toml uses setuptools with package discovery under src/.
 - Entry points:
   - background-utils: CLI
-  - background-utils-service: example service runner
+  - background-utils-service: combined service manager with system tray

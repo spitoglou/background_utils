@@ -1,11 +1,11 @@
 # from future import annotations
 import os
 import sys
-import time
 from pathlib import Path
 
-from PIL import Image, ImageDraw
 import pystray
+from PIL import Image, ImageDraw
+
 
 def log(msg: str) -> None:
     log_dir = Path(os.getenv("LOCALAPPDATA") or ".") / "background-utils"

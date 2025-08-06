@@ -2,12 +2,11 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from typing import Optional, Tuple
 
 from loguru import logger
 from rich.console import Console
 
-_console: Optional[Console] = None
+_console: Console | None = None
 _configured = False
 
 
@@ -19,7 +18,7 @@ def _windows_log_dir() -> Path:
     return Path(localappdata) / "background-utils"
 
 
-def _ensure_log_file() -> Tuple[Path, Path]:
+def _ensure_log_file() -> tuple[Path, Path]:
     """
     Ensure the Windows-specific log directory and file exist.
     Returns (log_dir, log_file).

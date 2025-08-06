@@ -5,19 +5,16 @@ import signal
 import subprocess
 import threading
 import time
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass
-from io import BytesIO
 from types import FrameType
-from typing import Callable, Iterable, List, Optional
 
 # Lazy import notes:
 # PIL and pystray can fail to import in headless or non-GUI environments.
 # We import them lazily within tray-specific functions to allow ServiceManager
 # to be imported/used without GUI dependencies.
 # Types are hinted via `type: ignore` or string annotations where needed.
-
-from background_utils.logging import setup_logging, logger
-
+from background_utils.logging import logger, setup_logging
 
 ServiceFunc = Callable[[threading.Event], None]
 
@@ -30,13 +27,13 @@ class ServiceSpec:
 
 class ServiceManager:
     def __init__(self, services: Iterable[ServiceSpec], shutdown_timeout: float = 10.0) -> None:
-        self.services: List[ServiceSpec] = list(services)
+        self.services: list[ServiceSpec] = list(services)
         self.shutdown_timeout = shutdown_timeout
         self.stop_event = threading.Event()
         self.threads: list[threading.Thread] = []
         self._stopped_once = threading.Event()
 
-    def _signal_handler(self, signum: int, frame: Optional[FrameType]) -> None:  # type: ignore[override]
+    def _signal_handler(self, signum: int, frame: FrameType | None) -> None:
         logger.info(f"Received signal {signum}. Initiating shutdown...")
         self.stop()
 
@@ -110,7 +107,9 @@ class ServiceManager:
             first = True
         if first:
             logger.info("Stopping services...")
-            logger.info(f"Stop event set. Active threads: {[t.name for t in self.threads if t.is_alive()]}")
+            logger.info(
+                f"Stop event set. Active threads: {[t.name for t in self.threads if t.is_alive()]}"
+            )
         else:
             logger.debug("Stop requested (already stopping)")
 
@@ -126,9 +125,13 @@ class ServiceManager:
         for i, t in enumerate(self.threads):
             remaining = max(0.0, deadline - time.time())
             if remaining == 0.0:
-                logger.warning(f"Timeout reached, skipping remaining threads")
+                logger.warning(
+                            "Timeout reached, skipping remaining threads"
+                        )
                 break
-            logger.info(f"Joining thread {i+1}/{len(self.threads)}: {t.name} (timeout: {remaining:.1f}s)")
+            logger.info(
+                f"Joining thread {i+1}/{len(self.threads)}: {t.name} (timeout: {remaining:.1f}s)"
+            )
             t.join(timeout=remaining)
             if t.is_alive():
                 logger.warning(f"Thread {t.name} still alive after join")
@@ -154,8 +157,8 @@ class ServiceManager:
 # -------------------- Tray Controller --------------------
 # Rewritten to use pystray exclusively. Removes all native win32 tray code.
 
-def _create_tray_image():
-    from PIL import Image, ImageDraw  # type: ignore
+def _create_tray_image() -> object:
+    from PIL import Image, ImageDraw
     size = 64
     img = Image.new("RGBA", (size, size), (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
@@ -164,10 +167,14 @@ def _create_tray_image():
 
 
 class TrayController:
-    def __init__(self, manager_factory: Callable[[], ServiceManager], log_path_provider: Callable[[], str]) -> None:
+    def __init__(
+        self, 
+        manager_factory: Callable[[], ServiceManager], 
+        log_path_provider: Callable[[], str]
+    ) -> None:
         self._image = _create_tray_image()
         self._manager_factory = manager_factory
-        self._manager: Optional[ServiceManager] = None
+        self._manager: ServiceManager | None = None
         self._log_path_provider = log_path_provider
         self._lock = threading.Lock()
         self._exiting = False
@@ -179,7 +186,7 @@ class TrayController:
                 self._manager = self._manager_factory()
 
     # Menu actions - non-blocking to keep tray responsive
-    def _view_log(self, icon, item) -> None:  # type: ignore[no-untyped-def]
+    def _view_log(self, icon, item) -> None:
         logger.info("MENU: View Log clicked")
         path = self._log_path_provider()
         logger.info(f"Opening log: {path}")
@@ -188,7 +195,7 @@ class TrayController:
         except Exception as exc:
             logger.warning(f"Failed to open log in Notepad: {exc!r}")
 
-    def _stop_services(self, icon, item) -> None:  # type: ignore[no-untyped-def]
+    def _stop_services(self, icon, item) -> None:
         logger.info("MENU: Stop Services clicked")
         
         def _do_stop():
@@ -206,7 +213,10 @@ class TrayController:
                 logger.info("THREAD: Lock released")
                 if mgr:
                     logger.info("Tray requested: Stop Services (background)")
-                    logger.info(f"Manager has {len(mgr.threads)} threads, stop_event.is_set()={mgr.stop_event.is_set()}")
+                    logger.info(
+                        f"Manager has {len(mgr.threads)} threads, "
+                        f"stop_event.is_set()={mgr.stop_event.is_set()}"
+                    )
                     mgr.stop()
                     logger.info("Stop Services completed")
                 else:
@@ -223,7 +233,7 @@ class TrayController:
         t.start()
         logger.info("Stop thread started")
 
-    def _restart_services(self, icon, item) -> None:  # type: ignore[no-untyped-def]
+    def _restart_services(self, icon, item) -> None:
         logger.info("MENU: Restart Services clicked")
         
         def _do_restart():
@@ -237,7 +247,10 @@ class TrayController:
                     mgr = self._manager  # Don't call _ensure_manager, just use existing
                 if mgr:
                     logger.info("Stopping services for restart...")
-                    logger.info(f"Manager has {len(mgr.threads)} threads, stop_event.is_set()={mgr.stop_event.is_set()}")
+                    logger.info(
+                        f"Manager has {len(mgr.threads)} threads, "
+                        f"stop_event.is_set()={mgr.stop_event.is_set()}"
+                    )
                     mgr.stop()
                     # Wait for stop to complete
                     try:
@@ -252,7 +265,11 @@ class TrayController:
                         new_mgr = self._manager
                     if new_mgr:
                         logger.info("Starting new service manager...")
-                        threading.Thread(target=new_mgr.run, name="svc-restart", daemon=False).start()
+                        threading.Thread(
+                            target=new_mgr.run, 
+                            name="svc-restart", 
+                            daemon=False
+                        ).start()
                         logger.info("Restart Services completed")
                 else:
                     logger.warning("No manager available to restart")
@@ -268,7 +285,7 @@ class TrayController:
         t.start()
         logger.info("Restart thread started")
 
-    def _exit_tray(self, icon, item) -> None:  # type: ignore[no-untyped-def]
+    def _exit_tray(self, icon, item) -> None:
         logger.info("MENU: Exit clicked")
         
         def _do_exit():
@@ -298,7 +315,7 @@ class TrayController:
     def _create_pystray(self) -> bool:
         try:
             # Force Windows backend when available to avoid backend mismatch on Win11
-            from pystray import Icon, Menu, MenuItem  # type: ignore
+            from pystray import Icon, Menu, MenuItem
             try:
                 # Hint import so pystray selects _win32 backend
                 import pystray._win32  # type: ignore  # noqa: F401
@@ -309,7 +326,7 @@ class TrayController:
             return False
 
         # Build menu factory so we can rebuild it if needed
-        def build_menu():
+        def build_menu() -> object:
             return Menu(
                 MenuItem("View Log", self._view_log),
                 MenuItem("Stop Services", self._stop_services),
@@ -321,7 +338,7 @@ class TrayController:
             icon = Icon("background-utils", self._image, "Background Utils", menu=build_menu())
             # Keep reference and builder for future updates
             self._icon = icon
-            self._build_menu = build_menu  # type: ignore[attr-defined]
+            self._build_menu = build_menu
         except Exception as exc:
             logger.warning(f"Failed to construct pystray icon: {exc!r}")
             self._icon = None
@@ -359,7 +376,7 @@ class TrayController:
             return
 
         # Use blocking run() instead of run_detached() to ensure menu callbacks work
-        def setup(_icon):
+        def setup(_icon) -> None:
             try:
                 logger.info("Tray setup callback called")
                 _icon.visible = True
@@ -409,13 +426,15 @@ def _windows_log_path() -> str:
 
 def _collect_default_services() -> list[ServiceSpec]:
     # Local imports to avoid import-time side effects
-    from background_utils.services.example_service import run as example_run  # noqa: WPS433
-    from background_utils.services.battery_monitor import run as battery_run  # noqa: WPS433
+    from background_utils.services.battery_monitor import run as battery_run
+    from background_utils.services.example_service import run as example_run
     try:
-        from background_utils.services.my_service import run as my_run  # type: ignore  # noqa: WPS433
+        from background_utils.services.my_service import (
+            run as my_run,
+        )
     except Exception as exc:
         logger.warning(f"my_service not available ({exc}); it will not be started.")
-        my_run = None  # type: ignore
+        my_run = None
 
     specs: list[ServiceSpec] = [
         ServiceSpec(name="example", target=example_run),

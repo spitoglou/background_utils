@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Optional
 
 import rich
 import typer
@@ -24,7 +23,7 @@ def hello(name: str = "world", excited: bool = False) -> None:
 
 
 @app.command("time")
-def show_time(fmt: Optional[str] = typer.Option(None, help="Datetime format string")) -> None:
+def show_time(fmt: str | None = typer.Option(None, help="Datetime format string")) -> None:
     """
     Show current time in a rich table.
     """
