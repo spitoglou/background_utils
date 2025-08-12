@@ -14,6 +14,7 @@
   - **FIXED**: Ctrl+C properly stops services and exits application
   - Graceful shutdown with shared stop_event and 10s timeout
   - **RESOLVED**: Threading conflicts that prevented menu operations
+- **IMPROVED**: Wi-Fi command error handling with better privilege detection and user messaging
 - Individual service runners:
   - `background-utils-service-example`, `background-utils-service-battery`, `background-utils-service-my`
 - Windows file logging at `%LOCALAPPDATA%/background-utils/background-utils.log` (rotating)
@@ -51,8 +52,9 @@
 - **Proven service lifecycle management**: Stop/restart operations work correctly with proper synchronization
 
 ## Next milestones
-1) Add CLI tests and coverage reporting
-2) Introduce CI workflow (lint, type-check, tests)
-3) Extract Wi‑Fi logic to `utils/` and add platform checks
-4) Expand README with detailed command usage and troubleshooting
-5) Add more sandbox processes for system monitoring
+1) **COMPLETED**: Created comprehensive CLAUDE.md for future Claude Code instances
+2) Add CLI tests and coverage reporting
+3) Introduce CI workflow (lint, type-check, tests)
+4) Extract Wi‑Fi logic to `utils/` and add platform checks
+5) Expand README with detailed command usage and troubleshooting
+6) Add more sandbox processes for system monitoring

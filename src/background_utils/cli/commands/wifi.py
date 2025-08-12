@@ -48,17 +48,30 @@ def _list_profiles() -> list[str]:
     return profiles
 
 
-def _get_profile_key(name: str) -> str | None:
+def _get_profile_key(name: str) -> tuple[str | None, bool]:
+    """
+    Get profile key for a Wi-Fi network.
+    Returns (password, is_permission_error)
+    """
     # netsh wlan show profile name="SSID" key=clear
     code, out, err = _run(["netsh", "wlan", "show", "profile", f'name="{name}"', "key=clear"])
     if code != 0:
-        logger.warning(f"Failed to get key for profile {name}: {err or out}")
-        return None
+        # Check if it's a permission/privilege error
+        error_text = (err or out).lower()
+        is_permission_error = any(phrase in error_text for phrase in [
+            "one or more parameters for the command are not correct",
+            "access is denied",
+            "privilege",
+            "administrator"
+        ])
+        return None, is_permission_error
+    
     key_line_prefix = "Key Content"
     for line in out.splitlines():
         if key_line_prefix in line and ":" in line:
-            return line.split(":", 1)[1].strip() or None
-    return None
+            password = line.split(":", 1)[1].strip() or None
+            return password, False
+    return None, False
 
 
 def _list_networks() -> list[dict[str, str]]:
@@ -103,12 +116,21 @@ def _list_networks() -> list[dict[str, str]]:
     return networks
 
 
-def _gather_profiles() -> list[WifiProfile]:
+def _gather_profiles() -> tuple[list[WifiProfile], int]:
+    """
+    Gather Wi-Fi profiles with passwords.
+    Returns (profiles, permission_error_count)
+    """
     profiles = []
+    permission_errors = 0
+    
     for name in _list_profiles():
-        pwd = _get_profile_key(name)
+        pwd, is_permission_error = _get_profile_key(name)
+        if is_permission_error:
+            permission_errors += 1
         profiles.append(WifiProfile(name=name, password=pwd))
-    return profiles
+    
+    return profiles, permission_errors
 
 
 @app.command("show-passwords")
@@ -128,7 +150,7 @@ def show_passwords(
     setup_logging()
 
     try:
-        profiles = _gather_profiles()
+        profiles, permission_errors = _gather_profiles()
     except Exception as exc:  # noqa: BLE001
         logger.exception(f"Failed to fetch Wi-Fi profiles: {exc}")
         raise typer.Exit(code=1) from exc
@@ -144,10 +166,24 @@ def show_passwords(
     table.add_column("Password", style="green")
 
     for p in profiles:
-        table.add_row(p.name, p.password or "N/A")
+        if p.password is None:
+            password_display = "[yellow]Insufficient privileges[/yellow]"
+        else:
+            password_display = p.password
+        table.add_row(p.name, password_display)
 
     # Ensure printing doesn't trigger cp1252 encoding errors
     console.print(table, overflow="ignore", soft_wrap=False)
+    
+    # Add informational message if there were permission errors
+    if permission_errors > 0:
+        console.print()
+        console.print(
+            f"[yellow]![/yellow]  {permission_errors} network(s) require administrator privileges to reveal passwords."
+        )
+        console.print(
+            "[dim]Run this command as Administrator to see all Wi-Fi passwords.[/dim]"
+        )
 
 
 @app.command("list-networks")

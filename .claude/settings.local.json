@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(background-utils wifi:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
