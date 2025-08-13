@@ -4,6 +4,7 @@
 - Foundation scaffold for CLIs, services, and sandbox processes is in place
 - Integrated Wi‑Fi utilities (Windows)
 - **COMPLETED**: Robust Windows tray icon implementation working reliably on Windows 11
+- **COMPLETED**: Comprehensive CLAUDE.md file created for future Claude Code instances
 - Next: expand tests/CI and documentation
 
 ## Recent Changes
@@ -12,6 +13,7 @@
 - Added CLI command groups:
   - example (hello, time)
   - wifi (show-passwords, list-networks) — Windows-only via `netsh`, table/JSON output
+- **IMPROVED**: Wi-Fi command error handling with privilege detection and cleaner messaging
 - **MAJOR FIX**: Completely rewrote tray implementation for Windows 11 compatibility:
   - Removed problematic native Win32 tray code that had menu callback issues
   - Implemented clean pystray-only solution with proper threading model
@@ -59,6 +61,13 @@
 4) Feature Roadmap
    - Add more personal automations and production services
    - Develop additional sandbox processes for system monitoring
+
+## Documentation Achievements
+- **CLAUDE.md**: Created comprehensive guidance file for future Claude Code instances covering:
+  - Development commands (install, lint, test)
+  - Architecture overview (CLI + service management systems)
+  - Key design patterns for adding services and CLI commands
+  - Windows-specific features and integration details
 
 ## Important Patterns and Preferences
 - Single logging initialization; consistent format

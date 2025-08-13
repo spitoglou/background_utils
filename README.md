@@ -54,6 +54,7 @@ The main service entry point `background-utils-service` launches a system tray i
 - Tooling: ruff, mypy, pytest
 
 Common commands:
+
 - Lint:
     ruff check .
 - Type-check:
@@ -67,3 +68,15 @@ Common commands:
 - Entry points:
   - background-utils: CLI
   - background-utils-service: combined service manager with system tray
+
+## Development Tools
+
+This project's development was facilitated by AI code assisting tools including:
+
+- **Claude Code**: Interactive CLI development environment
+- **Claude Sonnet Models**: Code generation and architectural guidance
+- **Kilo Code**: Development assistance and code optimization
+- **Qwen3 Code Models**: Code analysis and improvement suggestions
+- **Kimi2 Models**: Development workflow automation
+
+These AI tools helped accelerate development, improve code quality, and provide architectural insights throughout the project lifecycle.
