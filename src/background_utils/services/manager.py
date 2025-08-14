@@ -428,6 +428,7 @@ def _collect_default_services() -> list[ServiceSpec]:
     # Local imports to avoid import-time side effects
     from background_utils.services.battery_monitor import run as battery_run
     from background_utils.services.example_service import run as example_run
+    from background_utils.services.gmail_notifier import run as gmail_run
     try:
         from background_utils.services.my_service import (
             run as my_run,
@@ -439,6 +440,7 @@ def _collect_default_services() -> list[ServiceSpec]:
     specs: list[ServiceSpec] = [
         ServiceSpec(name="example", target=example_run),
         ServiceSpec(name="battery", target=battery_run),
+        ServiceSpec(name="gmail", target=gmail_run),
     ]
     if my_run is not None:
         specs.append(ServiceSpec(name="my_service", target=my_run))

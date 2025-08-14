@@ -27,6 +27,12 @@ class Settings(BaseSettings):
 
     # Example of optional settings
     sentry_dsn: str | None = Field(default=None, description="Sentry DSN for error reporting")
+    
+    # Gmail notification settings
+    gmail_email: str | None = Field(
+        default=None, description="Gmail email address for notifications"
+    )
+    gmail_password: str | None = Field(default=None, description="Gmail password or app password")
 
 
 def load_settings() -> Settings:

@@ -32,6 +32,7 @@ background-utils-service
 # Individual services for testing
 background-utils-service-example
 background-utils-service-battery
+background-utils-service-gmail
 background-utils-service-my
 ```
 
@@ -78,6 +79,30 @@ def run(stop_event: threading.Event) -> None:
 - Settings loaded from environment variables with `BGU_` prefix
 - Pydantic validation with sensible defaults
 - `.env` file support for local development
+
+## Available Services
+
+### Gmail Notification Service (`gmail_notifier.py`)
+- **Purpose**: Monitors Gmail inbox for new emails and shows desktop notifications
+- **Features**: 
+  - Uses IMAP over SSL to connect to Gmail
+  - Cross-platform notifications (plyer + win10toast fallback)
+  - UID-based tracking to avoid duplicate notifications
+  - Persistent UID cache survives service restarts
+  - 60-second check interval with cooperative threading
+- **Configuration**:
+  - `BGU_GMAIL_EMAIL`: Gmail email address
+  - `BGU_GMAIL_PASSWORD`: Gmail password or App Password (recommended)
+- **Security**: Use Gmail App Passwords, enable 2FA
+- **Cache**: Stores last seen UID in `%LOCALAPPDATA%\background-utils\gmail_last_uid.txt`
+
+### Battery Monitor Service (`battery_monitor.py`)
+- **Purpose**: Monitors battery status and warns when battery is low
+- **Features**: Logs battery percentage and power status every 60 seconds
+
+### Example Service (`example_service.py`)
+- **Purpose**: Demonstration service showing the basic service pattern
+- **Features**: Simple periodic logging with configurable interval
 
 ## Windows-Specific Features
 

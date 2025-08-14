@@ -26,6 +26,8 @@ dependencies = [
   "pystray>=0.19",
   "Pillow>=10.0",
   "pywin32>=306; platform_system == 'Windows'",
+  "plyer>=2.1",
+  "win10toast>=0.9; platform_system == 'Windows'",
 ]
 
 [project.optional-dependencies]
@@ -46,6 +48,7 @@ background-utils-service = "background_utils.services.manager:main"
 # Individual services
 background-utils-service-example = "background_utils.services.example_service:main"
 background-utils-service-battery = "background_utils.services.battery_monitor:main"
+background-utils-service-gmail = "background_utils.services.gmail_notifier:main"
 background-utils-service-my = "background_utils.services.my_service:main"
 
 [tool.setuptools.packages.find]

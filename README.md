@@ -40,6 +40,7 @@ The main service entry point `background-utils-service` launches a system tray i
   - Individual service entry points available for testing:
     - background-utils-service-example
     - background-utils-service-battery
+    - background-utils-service-gmail
     - background-utils-service-my
 
 - **Windows Compatibility:**
