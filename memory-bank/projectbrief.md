@@ -1,13 +1,16 @@
 # Project Brief: background-utils
 
 ## Purpose
+
 Create a Python 3.12+ project that hosts personal automation and production tools. The project supports:
+
 - Terminal utilities (CLI) using Typer
 - Long-running services/daemons
 - Shared configuration and logging foundations
 - Testable, documented, and extensible structure
 
 ## Primary Requirements
+
 - Python 3.12+
 - Typer for CLI
 - Rich for terminal output
@@ -19,11 +22,12 @@ Create a Python 3.12+ project that hosts personal automation and production tool
 - Example CLI command and example service
 
 ## Deliverables
+
 - Working package installable via `pip install -e .[dev]`
 - CLI entry point `background-utils`
 - Service entry points:
   - Combined manager: `background-utils-service` (with Windows tray icon)
-  - Individual services: `background-utils-service-example`, `background-utils-service-battery`, `background-utils-service-my`
+  - Individual services: `background-utils-service-example`, `background-utils-service-battery`, `background-utils-service-gmail`, `background-utils-service-my`
 - Examples demonstrating CLI, service, and sandbox usage
 - Initial tests
 - Documentation and helper scripts

@@ -1,6 +1,7 @@
 # Progress: background-utils
 
 ## What works
+
 - Editable install with dependencies and developer tooling
 - Typer-based CLI entry `background-utils`
 - CLI command groups:
@@ -15,8 +16,15 @@
   - Graceful shutdown with shared stop_event and 10s timeout
   - **RESOLVED**: Threading conflicts that prevented menu operations
 - **IMPROVED**: Wi-Fi command error handling with better privilege detection and user messaging
+- **FULLY FUNCTIONAL** Gmail notification service:
+  - IMAP over SSL Gmail connection with UID-based tracking
+  - Cross-platform desktop notifications (plyer + win10toast)
+  - Persistent UID cache survives restarts
+  - Fixed duplicate notification bug with explicit UID filtering
+  - 60-second check interval with cooperative threading
+  - Configuration via BGU_GMAIL_EMAIL and BGU_GMAIL_PASSWORD
 - Individual service runners:
-  - `background-utils-service-example`, `background-utils-service-battery`, `background-utils-service-my`
+  - `background-utils-service-example`, `background-utils-service-battery`, `background-utils-service-gmail`, `background-utils-service-my`
 - Windows file logging at `%LOCALAPPDATA%/background-utils/background-utils.log` (rotating)
 - Shared configuration via pydantic-settings with `.env` support
 - Centralized logging via Loguru with Rich sink
@@ -25,6 +33,7 @@
 - Memory Bank moved to root `memory-bank/` and rules updated to reference it
 
 ## What's left to build
+
 - Test suite expansion:
   - CLI invocation tests (Typer runner, output capture and exit codes)
   - Service loop tests with shortened intervals and graceful shutdown verification
@@ -35,23 +44,31 @@
 - Documentation enhancements: usage, troubleshooting, contribution guide
 
 ## Current status
+
 - **MILESTONE ACHIEVED**: Foundation complete and fully operational
 - **MILESTONE ACHIEVED**: Combined manager with reliable Windows 11 tray integration
 - **MILESTONE ACHIEVED**: All tray menu operations working correctly
+- **MILESTONE ACHIEVED**: Gmail notification service fully implemented and working
 - Wi‑Fi utilities and sandbox present
 - Ready for iterative improvements in tests, CI, and documentation
 
 ## Known issues / considerations
+
 - Wi‑Fi command relies on `netsh` and may require admin privileges; permission errors should be handled
 - Platform-specific commands need guards or alternative implementations
 
 ## Technical Achievements
+
 - **Solved Windows 11 tray compatibility**: Replaced native Win32 implementation with robust pystray solution
 - **Resolved threading conflicts**: Fixed manager reference issues that caused silent thread failures
 - **Established reliable threading model**: pystray in daemon thread, background workers for menu operations
 - **Proven service lifecycle management**: Stop/restart operations work correctly with proper synchronization
+- **Gmail service implementation**: Complete IMAP-based email monitoring with persistent state
+- **Fixed IMAP UID boundary issue**: Resolved Gmail-specific behavior causing duplicate notifications
+- **Cross-platform notification system**: Implemented robust fallback chain for desktop alerts
 
 ## Next milestones
+
 1) **COMPLETED**: Created comprehensive CLAUDE.md for future Claude Code instances
 2) Add CLI tests and coverage reporting
 3) Introduce CI workflow (lint, type-check, tests)

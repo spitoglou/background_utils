@@ -1,6 +1,7 @@
 # System Patterns: background-utils
 
 ## Architecture
+
 - Single Python package with `src/` layout: `src/background_utils`
 - Separation of concerns:
   - CLI: `background_utils.cli` (Typer root app) with command groups under `background_utils.cli.commands`
@@ -14,9 +15,11 @@
   - Individual services:
     - `background-utils-service-example` → `background_utils.services.example_service:main`
     - `background-utils-service-battery` → `background_utils.services.battery_monitor:main`
+    - `background-utils-service-gmail` → `background_utils.services.gmail_notifier:main`
     - `background-utils-service-my` → `background_utils.services.my_service:main`
 
 ## Key Technical Decisions
+
 - Typer for ergonomic CLI with sub-apps per domain (e.g., `example`, `wifi`)
 - Rich for user-friendly console output (tables, styling, pretty JSON)
 - Loguru for logging with a Rich console sink
@@ -24,6 +27,7 @@
 - Python 3.12+ features and typing (mypy strict mode orientation)
 
 ## Command Registration Pattern
+
 - Root CLI initializes logging using a `--verbose` flag:
   - `setup_logging(level="DEBUG" if verbose else "INFO")`
 - Subcommands live in `background_utils.cli.commands.<name>` and expose `app: Typer`
@@ -34,6 +38,7 @@
   - `app.add_typer(wifi_app, name="wifi")`
 
 ## Service Pattern
+
 - Cooperative services expose `run(stop_event: threading.Event)` and optionally keep a `main()` for standalone runs.
 - `ServiceManager` (manager.py):
   - Starts each service on its own thread
@@ -45,6 +50,7 @@
   - Ensures tray visibility on startup; hides and force-exits on Exit to avoid ghost icons
 
 ## Sandbox Pattern
+
 - `sandbox.py` demonstrates:
   - Infinite loop for continuous monitoring
   - System resource checking (e.g., battery status)
@@ -52,6 +58,7 @@
   - Logging with the project's standard setup
 
 ## Wi‑Fi Command (Windows)
+
 - Implemented in `cli/commands/wifi.py`:
   - Uses `netsh` to list profiles and show keys (passwords)
   - Output options: Rich table (default) or JSON (`-o json`)
@@ -59,32 +66,50 @@
 - Future improvement: extract logic to `utils/wifi.py` and add platform guards
 
 ## Testing
+
 - Pytest test structure under `tests/`
 - Initial smoke tests for module importability
 - Next: add Typer CLI invocation tests and service loop tests with shortened intervals
 
 ## Logging Pattern
+
 - `background_utils.logging.setup_logging()` sets a Rich console sink for Loguru
 - Adds a rotating file sink on Windows at `%LOCALAPPDATA%/background-utils/background-utils.log`
 - Consistent structured format; use `logger.info/debug/warning/exception` across code
 
 ## Configuration Pattern
+
 - Pydantic v2 model `Settings` in `background_utils.config`
 - `.env.example` documents supported variables with prefix `BGU_`
 - `load_settings()` to obtain validated runtime configuration
 
 ## Cross-Platform Considerations
+
 - Wi‑Fi functionality is currently Windows-only
 - Provide helpful messaging on non-Windows platforms
 - Scripts for service execution include PowerShell and Bash variants
 
+## Gmail Notification Service Pattern
+
+- **Implementation**: `gmail_notifier.py` with IMAP over SSL connection to Gmail
+- **UID Tracking**: Persistent cache at `%LOCALAPPDATA%\background-utils\gmail_last_uid.txt`
+- **Notifications**: Cross-platform using `plyer` + `win10toast` Windows fallback
+- **Configuration**: `BGU_GMAIL_EMAIL` and `BGU_GMAIL_PASSWORD` environment variables
+- **Security**: Recommends Gmail App Passwords with 2FA
+- **Threading**: 60-second check interval with cooperative shutdown
+- **Error Handling**: Automatic reconnection on connection failures
+- **Key Fix**: UID filtering to prevent duplicate notifications due to Gmail IMAP boundary behavior
+
 ## Extensibility
+
 - Add new command group:
   1) Create `src/background_utils/cli/commands/<group>.py` with `app: Typer`
   2) Register in `src/background_utils/cli/app.py` using `_lazy_import` and `app.add_typer(...)`
 - Add new service:
-  1) Create `src/background_utils/services/<name>.py` with `main()`
-  2) Optionally add `project.scripts` entry in `pyproject.toml` if exposed to users
+  1) Create `src/background_utils/services/<name>.py` with `run(stop_event: threading.Event)` and `main()`
+  2) Add to `_collect_default_services()` in `manager.py`
+  3) Add entry point in `pyproject.toml`
+  4) Update configuration in `config.py` if needed
 - Add new sandbox process:
   1) Create `src/background_utils/<name>.py` with `main()` and infinite loop
   2) Add `project.scripts` entry in `pyproject.toml`
