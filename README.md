@@ -5,7 +5,7 @@ Personal automation and production tools for Python 3.12+. Includes Typer-based 
 ## Quick start
 
 1) Install (with UV):
-    uv sync
+    uv sync --extra dev
 
 2) Run CLI:
     background-utils --help

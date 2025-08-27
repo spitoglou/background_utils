@@ -7,8 +7,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **Install dependencies (with UV):**
 
 ```bash
-uv sync  # Install all dependencies including dev
+uv sync --extra dev    # Recommended: Install dev dependencies only
+# OR
+uv sync --all-extras   # Install ALL dependencies including dev (explicit)
 ```
+
+**IMPORTANT UV WORKFLOW:**
+- For dev work: `uv sync --extra dev` (recommended for typical development)
+- For complete setup: `uv sync --all-extras` (when you need everything)
+- Then use `uv run <command>` to execute tools
+- Unlike pip, UV requires explicit sync before running commands
+- `--all-extras` is more explicit than plain `uv sync`
 
 **Code quality checks:**
 
