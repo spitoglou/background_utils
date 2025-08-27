@@ -4,19 +4,22 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Development Commands
 
-**Install dependencies (editable):**
+**Install dependencies (with UV):**
+
 ```bash
-pip install -e .[dev]
+uv sync  # Install all dependencies including dev
 ```
 
 **Code quality checks:**
+
 ```bash
-ruff check .          # Lint code
-mypy .                # Type checking  
-pytest                # Run tests
+uv run ruff check .   # Lint code
+uv run mypy .         # Type checking  
+uv run pytest        # Run tests
 ```
 
 **Run the CLI:**
+
 ```bash
 background-utils --help
 background-utils example hello
@@ -25,6 +28,7 @@ background-utils wifi list-networks
 ```
 
 **Run services:**
+
 ```bash
 # Combined service manager with Windows system tray
 background-utils-service
@@ -41,17 +45,20 @@ background-utils-service-my
 This is a Python package for personal automation tools with two main components:
 
 ### 1. CLI Application (`src/background_utils/cli/`)
+
 - **Typer-based CLI** with lazy-loaded subcommands in `cli/commands/`
 - Main app in `cli/app.py` with auto-discovery of command modules
 - Commands are organized as separate Typer apps (example, wifi)
 
 ### 2. Service Management (`src/background_utils/services/`)
+
 - **ServiceManager**: Thread-based service orchestration with cooperative shutdown
 - **TrayController**: Windows system tray integration using pystray
 - Individual services implement `run(stop_event: threading.Event) -> None`
 - Services are collected in `manager.py:_collect_default_services()`
 
 ### Core Infrastructure
+
 - **Configuration**: Pydantic Settings with environment variable support (`BGU_` prefix)
 - **Logging**: Loguru with Rich console output + file logging to `%LOCALAPPDATA%\background-utils\`
 - **Windows Integration**: Native tray icon, Notepad log viewer, proper shutdown handling
@@ -59,6 +66,7 @@ This is a Python package for personal automation tools with two main components:
 ## Key Design Patterns
 
 **Service Pattern:**
+
 ```python
 def run(stop_event: threading.Event) -> None:
     while not stop_event.is_set():
@@ -67,15 +75,18 @@ def run(stop_event: threading.Event) -> None:
 ```
 
 **Adding New Services:**
+
 1. Create service module in `services/` with `run()` function
 2. Add entry point in `pyproject.toml`
 3. Import and add to `_collect_default_services()` in `manager.py`
 
 **Adding CLI Commands:**
+
 1. Create command module in `cli/commands/` with Typer app
 2. Import and register in `cli/app.py`
 
 **Configuration Management:**
+
 - Settings loaded from environment variables with `BGU_` prefix
 - Pydantic validation with sensible defaults
 - `.env` file support for local development
@@ -83,8 +94,9 @@ def run(stop_event: threading.Event) -> None:
 ## Available Services
 
 ### Gmail Notification Service (`gmail_notifier.py`)
+
 - **Purpose**: Monitors Gmail inbox for new emails and shows desktop notifications
-- **Features**: 
+- **Features**:
   - Uses IMAP over SSL to connect to Gmail
   - Cross-platform notifications (plyer + win10toast fallback)
   - UID-based tracking to avoid duplicate notifications
@@ -97,10 +109,12 @@ def run(stop_event: threading.Event) -> None:
 - **Cache**: Stores last seen UID in `%LOCALAPPDATA%\background-utils\gmail_last_uid.txt`
 
 ### Battery Monitor Service (`battery_monitor.py`)
+
 - **Purpose**: Monitors battery status and warns when battery is low
 - **Features**: Logs battery percentage and power status every 60 seconds
 
 ### Example Service (`example_service.py`)
+
 - **Purpose**: Demonstration service showing the basic service pattern
 - **Features**: Simple periodic logging with configurable interval
 
@@ -133,6 +147,7 @@ flowchart TD
 ```
 
 ### Core Files (Required)
+
 1. `projectbrief.md`
    - Foundation document that shapes all other files
    - Created at project start if it doesn't exist
@@ -175,7 +190,9 @@ flowchart TD
    - Evolution of project decisions
 
 ### Additional Context
+
 Create additional files/folders within memory-bank/ when they help organize:
+
 - Complex feature documentation
 - Integration specifications
 - API documentation
@@ -185,6 +202,7 @@ Create additional files/folders within memory-bank/ when they help organize:
 ## Core Workflows
 
 ### Plan Mode
+
 ```
 flowchart TD
     Start[Start] --> ReadFiles[Read Memory Bank]
@@ -199,6 +217,7 @@ flowchart TD
 ```
 
 ### Act Mode
+
 ```
 flowchart TD
     Start[Start] --> Context[Check Memory Bank]
@@ -210,6 +229,7 @@ flowchart TD
 ## Documentation Updates
 
 Memory Bank updates occur when:
+
 1. Discovering new project patterns
 2. After implementing significant changes
 3. When user requests with **update memory bank** (MUST review ALL files)
@@ -234,4 +254,5 @@ flowchart TD
 Note: When triggered by **update memory bank**, I MUST review every memory bank file, even if some don't require updates. Focus particularly on activeContext.md and progress.md as they track current state.
 
 REMEMBER: After every memory reset, I begin completely fresh. The Memory Bank is my only link to previous work. It must be maintained with precision and clarity, as my effectiveness depends entirely on its accuracy.
+
 - Before commiting, always check that the markdown files are professionally formatted. Use markdown node utility for this purpose. If not present, install it.

@@ -24,7 +24,7 @@ To centralize personal automation and production tools into a single, cohesive P
 
 ## Current user experience
 
-- `pip install -e .[dev]` gets developers productive fast
+- `uv sync` gets developers productive fast
 - `background-utils --help` lists command groups (e.g., `example`, `wifi`)
 - Commands provide styled output with Rich and clear error handling
 - Services start cleanly, log consistently, and shut down gracefully

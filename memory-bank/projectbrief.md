@@ -23,7 +23,7 @@ Create a Python 3.12+ project that hosts personal automation and production tool
 
 ## Deliverables
 
-- Working package installable via `pip install -e .[dev]`
+- Working package installable via `uv sync`
 - CLI entry point `background-utils`
 - Service entry points:
   - Combined manager: `background-utils-service` (with Windows tray icon)

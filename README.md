@@ -4,8 +4,8 @@ Personal automation and production tools for Python 3.12+. Includes Typer-based 
 
 ## Quick start
 
-1) Install (editable):
-    pip install -e .[dev]
+1) Install (with UV):
+    uv sync
 
 2) Run CLI:
     background-utils --help
@@ -113,11 +113,11 @@ The service will:
 Common commands:
 
 - Lint:
-    ruff check .
+    uv run ruff check .
 - Type-check:
-    mypy .
+    uv run mypy .
 - Tests:
-    pytest
+    uv run pytest
 
 ## Packaging
 

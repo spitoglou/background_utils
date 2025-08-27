@@ -18,6 +18,7 @@
 
 ## Dev Tooling
 
+- UV (package manager and dependency resolution)
 - Pytest + pytest-cov (tests and coverage)
 - Ruff (linting)
 - Mypy (type checking, strict configuration)
@@ -74,4 +75,5 @@
 
 ## Installation
 
-- `pip install -e .[dev]` for development environment
+- `uv sync` for development environment (installs all dependencies including dev)
+- `uv sync --no-dev` for production environment (runtime dependencies only)

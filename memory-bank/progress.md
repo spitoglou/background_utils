@@ -2,7 +2,7 @@
 
 ## What works
 
-- Editable install with dependencies and developer tooling
+- UV-managed dependencies with locked versions for reproducible builds
 - Typer-based CLI entry `background-utils`
 - CLI command groups:
   - `example` with `hello`, `time`
