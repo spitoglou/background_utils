@@ -15,7 +15,7 @@
   - **FIXED**: Ctrl+C properly stops services and exits application
   - Graceful shutdown with shared stop_event and 10s timeout
   - **RESOLVED**: Threading conflicts that prevented menu operations
-- **IMPROVED**: Wi-Fi command error handling with better privilege detection and user messaging
+- **IMPROVED**: Wi-Fi command error handling with better service detection and user messaging
 - **FULLY FUNCTIONAL** Gmail notification service:
   - IMAP over SSL Gmail connection with UID-based tracking
   - Cross-platform desktop notifications (plyer + win10toast)
@@ -49,6 +49,7 @@
 - **MILESTONE ACHIEVED**: Combined manager with reliable Windows 11 tray integration
 - **MILESTONE ACHIEVED**: All tray menu operations working correctly
 - **MILESTONE ACHIEVED**: Gmail notification service fully implemented and working
+- **MILESTONE ACHIEVED**: Wi-Fi command error handling properly implemented with user-friendly messages
 - Wi‑Fi utilities and sandbox present
 - Ready for iterative improvements in tests, CI, and documentation
 
@@ -56,6 +57,7 @@
 
 - Wi‑Fi command relies on `netsh` and may require admin privileges; permission errors should be handled
 - Platform-specific commands need guards or alternative implementations
+- Windows Wireless AutoConfig Service (wlansvc) must be running for Wi-Fi commands to work
 
 ## Technical Achievements
 
@@ -66,6 +68,7 @@
 - **Gmail service implementation**: Complete IMAP-based email monitoring with persistent state
 - **Fixed IMAP UID boundary issue**: Resolved Gmail-specific behavior causing duplicate notifications
 - **Cross-platform notification system**: Implemented robust fallback chain for desktop alerts
+- **Wi-Fi service error handling**: Implemented proper detection and user-friendly messaging for Windows service issues
 
 ## Next milestones
 

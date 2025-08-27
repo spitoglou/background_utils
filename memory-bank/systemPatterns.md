@@ -63,6 +63,10 @@
   - Uses `netsh` to list profiles and show keys (passwords)
   - Output options: Rich table (default) or JSON (`-o json`)
   - Requires Windows and relevant privileges to read key material
+- **Error Handling Pattern**:
+  - Detects Windows service issues (e.g., wlansvc not running) and provides user-friendly error messages with resolution steps
+  - Distinguishes between service errors and other errors
+  - Formats error messages with clear instructions for the user
 - Future improvement: extract logic to `utils/wifi.py` and add platform guards
 
 ## Testing

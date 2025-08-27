@@ -80,7 +80,8 @@
 - `uv sync --no-dev` for production environment (runtime dependencies only)
 
 **Important UV Workflow:**
-1. For dev work: `uv sync --extra dev` (recommended) 
+
+1. For dev work: `uv sync --extra dev` (recommended)
 2. For complete setup: `uv sync --all-extras` (when you need everything)
 3. Then use `uv run <command>` to execute tools in the UV environment
 4. Unlike pip, UV requires explicit sync before running commands

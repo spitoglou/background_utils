@@ -31,11 +31,47 @@ def _run(cmd: list[str]) -> tuple[int, str, str]:
     return proc.returncode, proc.stdout, proc.stderr
 
 
+def _check_service_error(error_text: str) -> tuple[bool, str | None]:
+    """Check if error is due to Windows service issues and provide helpful message."""
+    error_lower = error_text.lower()
+    
+    if "wireless autoconfig service" in error_lower and "not running" in error_lower:
+        return True, (
+            "The Wireless AutoConfig Service (wlansvc) is not running.\n"
+            "To fix this, run as Administrator:\n"
+            "  net start wlansvc\n"
+            "Or enable it permanently:\n"
+            "  sc config wlansvc start= auto\n"
+            "  net start wlansvc"
+        )
+    
+    if "wlan autoconfig service" in error_lower:
+        return True, (
+            "Windows WLAN AutoConfig service is not available.\n"
+            "This might be a virtual machine or system without Wi-Fi support."
+        )
+    
+    if "wireless lan service" in error_lower or "wlansvc" in error_lower:
+        return True, (
+            "Windows Wi-Fi service is not available or not running.\n"
+            "Try starting the service: net start wlansvc"
+        )
+    
+    return False, None
+
+
 def _list_profiles() -> list[str]:
     # Windows: netsh wlan show profiles
     code, out, err = _run(["netsh", "wlan", "show", "profiles"])
     if code != 0:
-        raise RuntimeError(f"Failed to list profiles: {err or out}")
+        error_text = err or out
+        is_service_error, service_message = _check_service_error(error_text)
+        
+        if is_service_error:
+            raise RuntimeError(f"Windows Wi-Fi service issue:\n{service_message}")
+        else:
+            raise RuntimeError(f"Failed to list profiles: {error_text}")
+            
     profiles: list[str] = []
     for line in out.splitlines():
         # Lines like: "    All User Profile     : MyWifi"
@@ -78,7 +114,13 @@ def _list_networks() -> list[dict[str, str]]:
     # Windows: netsh wlan show networks
     code, out, err = _run(["netsh", "wlan", "show", "networks"])
     if code != 0:
-        raise RuntimeError(f"Failed to list networks: {err or out}")
+        error_text = err or out
+        is_service_error, service_message = _check_service_error(error_text)
+        
+        if is_service_error:
+            raise RuntimeError(f"Windows Wi-Fi service issue:\n{service_message}")
+        else:
+            raise RuntimeError(f"Failed to list networks: {error_text}")
     
     networks = []
     current_network: dict[str, str] = {}
@@ -152,7 +194,18 @@ def show_passwords(
     try:
         profiles, permission_errors = _gather_profiles()
     except Exception as exc:  # noqa: BLE001
-        logger.exception(f"Failed to fetch Wi-Fi profiles: {exc}")
+        error_msg = str(exc)
+        
+        # Check if it's a service-related error and provide cleaner output
+        if "Windows Wi-Fi service issue:" in error_msg:
+            # Extract just the helpful message without the prefix
+            clean_msg = error_msg.replace("Windows Wi-Fi service issue:\n", "")
+            console.print(f"[red]❌ Wi-Fi Service Issue[/red]")
+            console.print(f"[yellow]{clean_msg}[/yellow]")
+        else:
+            logger.exception(f"Failed to fetch Wi-Fi profiles: {exc}")
+            console.print(f"[red]❌ Error:[/red] {error_msg}")
+        
         raise typer.Exit(code=1) from exc
 
     if output == "json":
@@ -204,7 +257,18 @@ def list_networks(
     try:
         networks = _list_networks()
     except Exception as exc:  # noqa: BLE001
-        logger.exception(f"Failed to fetch Wi-Fi networks: {exc}")
+        error_msg = str(exc)
+        
+        # Check if it's a service-related error and provide cleaner output
+        if "Windows Wi-Fi service issue:" in error_msg:
+            # Extract just the helpful message without the prefix
+            clean_msg = error_msg.replace("Windows Wi-Fi service issue:\n", "")
+            console.print(f"[red]❌ Wi-Fi Service Issue[/red]")
+            console.print(f"[yellow]{clean_msg}[/yellow]")
+        else:
+            logger.exception(f"Failed to fetch Wi-Fi networks: {exc}")
+            console.print(f"[red]❌ Error:[/red] {error_msg}")
+        
         raise typer.Exit(code=1) from exc
 
     if output == "json":

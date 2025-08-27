@@ -159,6 +159,32 @@ def test_wifi_commands_mocked(monkeypatch: pytest.MonkeyPatch, runner: CliRunner
     assert "SSID2" in res2.stdout
 
 
+def test_wifi_service_error_handling(monkeypatch: pytest.MonkeyPatch, runner: CliRunner) -> None:
+    """Test that Windows service errors are handled gracefully."""
+    import background_utils.cli.commands.wifi as wifi
+    
+    # Mock the Windows check
+    monkeypatch.setattr("os.name", "nt")
+    
+    # Mock _run to simulate service not running error
+    def mock_run_service_error(cmd: list[str]) -> tuple[int, str, str]:
+        return 1, "", "The Wireless AutoConfig Service (wlansvc) is not running."
+    
+    monkeypatch.setattr(wifi, "_run", mock_run_service_error)
+    
+    # Test show-passwords with service error
+    res1 = runner.invoke(cli_app, ["wifi", "show-passwords"])
+    assert res1.exit_code == 1
+    assert "Wi-Fi Service Issue" in res1.stdout
+    assert "net start wlansvc" in res1.stdout
+    
+    # Test list-networks with service error  
+    res2 = runner.invoke(cli_app, ["wifi", "list-networks"])
+    assert res2.exit_code == 1
+    assert "Wi-Fi Service Issue" in res2.stdout
+    assert "net start wlansvc" in res2.stdout
+
+
 # ---------------------------
 # Services tests (cooperative loops)
 # ---------------------------

@@ -105,6 +105,38 @@ The service will:
 - If notifications don't appear, check that `plyer` and `win10toast` are installed
 - Check logs at `%LOCALAPPDATA%\background-utils\background-utils.log`
 
+## Wi-Fi Command Troubleshooting
+
+The Wi-Fi commands (`wifi show-passwords` and `wifi list-networks`) require the Windows Wireless AutoConfig Service to be running.
+
+**Common Error:**
+
+``` bash
+❌ Wi-Fi Service Issue
+The Wireless AutoConfig Service (wlansvc) is not running.
+```
+
+**Solution:**
+
+1. **Quick Fix (temporary):** Run as Administrator:
+
+   ```cmd
+   net start wlansvc
+   ```
+
+2. **Permanent Fix:** Enable the service to start automatically:
+
+   ```cmd
+   sc config wlansvc start= auto
+   net start wlansvc
+   ```
+
+**Additional Notes:**
+
+- The commands only work on Windows systems with Wi-Fi capability
+- `show-passwords` requires Administrator privileges to reveal passwords
+- On virtual machines or systems without Wi-Fi, these commands will show appropriate error messages
+
 ## Development
 
 - Python 3.12+

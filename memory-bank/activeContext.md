@@ -7,6 +7,7 @@
 - **COMPLETED**: Robust Windows tray icon implementation working reliably on Windows 11
 - **COMPLETED**: Gmail notification service with desktop alerts and persistent UID tracking
 - **COMPLETED**: Comprehensive CLAUDE.md file created for future Claude Code instances
+- **IMPROVED**: Wi-Fi command error handling for Windows service issues
 - Next: expand tests/CI and documentation
 
 ## Recent Changes
@@ -62,6 +63,10 @@
   - Must explicitly filter UIDs to prevent duplicate notifications
   - Persistent UID cache essential for service restart continuity
   - Use Gmail App Passwords instead of main password for security
+- **WI-FI SERVICE LESSONS LEARNED**:
+  - Windows Wireless AutoConfig Service (wlansvc) must be running for Wi-Fi commands to work
+  - Proper error handling with user-friendly messages and resolution steps is essential
+  - Service errors should be detected and formatted with clear instructions for the user
 
 ## Next Steps
 
