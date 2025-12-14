@@ -102,36 +102,44 @@
 - Combined manager continues remaining services on failure; graceful shutdown with shared stop_event
 - **Tray threading model**: pystray in daemon thread, menu handlers spawn background workers, main thread handles KeyboardInterrupt
 
-## Development Session Lessons
+## Development Session Practices
 
-### Session: OpenSpec Integration (2024)
+### Pre-Session Checklist
 
-**What Worked Well:**
-- Simple reference-based integration approach
-- Incremental commits separating core from additional files
-- Comprehensive documentation creation
-- All specs pass strict validation
+Before starting work:
+- [ ] Run `git status` to check current state
+- [ ] Test basic commands work (`ls`, `cd`, `openspec --help`)
+- [ ] Run `openspec validate --specs` to verify specs are valid
+- [ ] Review relevant memory-bank sections for context
 
-**Challenges Faced:**
-- Git commit message formatting issues with special characters
-- Windows path handling in bash commands
-- OpenSpec validation format requirements
+### Session Workflow
 
-**Solutions Implemented:**
-- Used simple alphanumeric commit messages
-- Tested commands with simple cases first
-- Added required spec sections before validation
-- Created comprehensive troubleshooting guides
+1. **Setup**: Check git status, validate specs
+2. **Implementation**: Make changes with frequent validation
+3. **Testing**: Run `openspec validate --strict`, run tests
+4. **Commit**: Stage and commit with simple message
+5. **Summary**: Verify with `git log --oneline -1`
 
-**Future Improvements:**
-- Create command reference guide (DONE: openspec/QUICK_REFERENCE.md)
-- Add pre-session checklist (DONE: openspec/SESSION_ASSESSMENT.md)
-- Document common errors and solutions (DONE: added to USAGE_GUIDE.md)
-- Maintain session assessment documentation
+### Troubleshooting Common Issues
 
-**Key Lessons:**
+**Git Errors:**
+- `pathspec did not match` → Use simple commit messages without special chars `()[]{}<>`
+- `changes not staged` → Run `git add .` first
+- Recovery: `git reset --soft HEAD~1` (undo keeping changes)
+
+**OpenSpec Errors:**
+- `Spec must have Purpose section` → Add `## Purpose` before `## Requirements`
+- `Requirement must have scenario` → Add `#### Scenario:` blocks
+- Debug: `openspec show [spec] --json --deltas-only`
+
+**Bash/Windows Errors:**
+- `command not found` → Use full path or check installation
+- Path issues → Use forward slashes in bash, even on Windows
+
+### Key Lessons Learned
+
 1. Use simple git commit messages without special characters
 2. Test commands with simple cases before applying to important files
-3. Follow OpenSpec format requirements strictly (Purpose + Requirements sections)
-4. Document session lessons in memory-bank for future reference
-5. Create and maintain quick reference guides for common operations
+3. Follow OpenSpec format strictly (Purpose + Requirements + Scenarios)
+4. Document lessons in memory-bank for future reference
+5. Reference memory-bank from specs, don't duplicate content

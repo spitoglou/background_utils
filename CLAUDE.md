@@ -43,7 +43,16 @@ uv sync --all-extras   # Install ALL dependencies including dev (explicit)
 ```bash
 uv run ruff check .   # Lint code
 uv run mypy .         # Type checking  
-uv run pytest        # Run tests
+uv run pytest         # Run tests
+```
+
+**OpenSpec operations:**
+
+```bash
+openspec list --specs              # List all specifications
+openspec show [spec-name]          # Show spec details
+openspec validate [item] --strict  # Validate changes or specs
+openspec archive [change-id] --yes # Archive completed change
 ```
 
 **Run the CLI:**
