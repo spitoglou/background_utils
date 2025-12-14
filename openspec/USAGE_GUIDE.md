@@ -239,6 +239,42 @@ function show-spec() {
 }
 ```
 
+## Troubleshooting Common Issues
+
+### Git Commit Problems
+
+**Symptom**: `error: pathspec 'word' did not match any file(s)`
+
+**Solution**: Use simpler commit messages without special characters:
+```bash
+git commit -m "feat brief-description"
+```
+
+### Command Not Found
+
+**Symptom**: `bash: command: command not found`
+
+**Solution**: Check command availability and use full paths:
+```bash
+which openspec
+C:\Windows\System32\tree.com /f
+```
+
+### Validation Failures
+
+**Symptom**: `Spec must have Purpose section`
+
+**Solution**: Ensure all specs follow required format:
+```markdown
+# Specification Title
+
+## Purpose
+[Brief purpose statement]
+
+## Requirements
+[Requirement sections]
+```
+
 ## Conclusion
 
 This simple integration approach gives you:

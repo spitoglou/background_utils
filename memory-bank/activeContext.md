@@ -101,3 +101,37 @@
 - Rich output by default; JSON option where useful
 - Combined manager continues remaining services on failure; graceful shutdown with shared stop_event
 - **Tray threading model**: pystray in daemon thread, menu handlers spawn background workers, main thread handles KeyboardInterrupt
+
+## Development Session Lessons
+
+### Session: OpenSpec Integration (2024)
+
+**What Worked Well:**
+- Simple reference-based integration approach
+- Incremental commits separating core from additional files
+- Comprehensive documentation creation
+- All specs pass strict validation
+
+**Challenges Faced:**
+- Git commit message formatting issues with special characters
+- Windows path handling in bash commands
+- OpenSpec validation format requirements
+
+**Solutions Implemented:**
+- Used simple alphanumeric commit messages
+- Tested commands with simple cases first
+- Added required spec sections before validation
+- Created comprehensive troubleshooting guides
+
+**Future Improvements:**
+- Create command reference guide (DONE: openspec/QUICK_REFERENCE.md)
+- Add pre-session checklist (DONE: openspec/SESSION_ASSESSMENT.md)
+- Document common errors and solutions (DONE: added to USAGE_GUIDE.md)
+- Maintain session assessment documentation
+
+**Key Lessons:**
+1. Use simple git commit messages without special characters
+2. Test commands with simple cases before applying to important files
+3. Follow OpenSpec format requirements strictly (Purpose + Requirements sections)
+4. Document session lessons in memory-bank for future reference
+5. Create and maintain quick reference guides for common operations
