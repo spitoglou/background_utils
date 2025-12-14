@@ -8,7 +8,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from background_utils.services.manager import TrayController, ServiceManager, ServiceSpec
+from background_utils.services.manager import ServiceManager, ServiceSpec, TrayController
 
 
 class TestTrayControllerSimple:
@@ -195,11 +195,8 @@ class TestTrayControllerSimple:
 
     def test_tray_pystray_unavailable(self, monkeypatch):
         """Test behavior when pystray unavailable."""
-        # Remove pystray
-        import sys
-
-        if "pystray" in sys.modules:
-            del sys.modules["pystray"]
+        import builtins
+        from unittest.mock import patch
 
         def manager_factory():
             return ServiceManager(services=[])
@@ -209,9 +206,17 @@ class TestTrayControllerSimple:
 
         tray = TrayController(manager_factory=manager_factory, log_path_provider=log_path_provider)
 
-        # Should return False
-        result = tray._create_pystray()
-        assert result is False
+        # Force pystray import to fail by patching builtins.__import__
+        original_import = builtins.__import__
+
+        def mock_import(name, *args, **kwargs):
+            if name == "pystray" or name.startswith("pystray."):
+                raise ImportError("pystray not available")
+            return original_import(name, *args, **kwargs)
+
+        with patch.object(builtins, "__import__", mock_import):
+            result = tray._create_pystray()
+            assert result is False
 
     def test_tray_windows_path(self, monkeypatch):
         """Test Windows path handling."""

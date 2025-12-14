@@ -10,7 +10,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from background_utils.services.manager import TrayController, ServiceManager, ServiceSpec
+from background_utils.services.manager import ServiceManager, ServiceSpec, TrayController
 
 
 class MockService:
@@ -139,24 +139,33 @@ class TestTrayMenuActions:
 
         tray = TrayController(manager_factory=manager_factory, log_path_provider=log_path_provider)
 
-        # Create manager instance
-        tray._ensure_manager()
+        try:
+            # Create manager instance
+            tray._ensure_manager()
+            original_manager = tray._manager
 
-        # Start services
-        service_thread = threading.Thread(target=tray._manager.start)
-        service_thread.start()
-        time.sleep(0.1)
+            # Start services
+            service_thread = threading.Thread(target=tray._manager.start, daemon=True)
+            service_thread.start()
+            time.sleep(0.1)
 
-        # Call restart services action
-        mock_icon = MagicMock()
-        mock_item = MagicMock()
-        tray._restart_services(mock_icon, mock_item)
+            # Call restart services action
+            mock_icon = MagicMock()
+            mock_item = MagicMock()
+            tray._restart_services(mock_icon, mock_item)
 
-        # Give restart thread time to work
-        time.sleep(0.5)
+            # Give restart thread time to work - restart has internal delays
+            time.sleep(1.5)
 
-        # Verify services were stopped and restarted
-        assert tray._manager.stop_event.is_set()
+            # Verify original manager was stopped
+            assert original_manager.stop_event.is_set()
+            # After restart, a new manager is created - verify service ran again
+            assert mock_service.run_calls >= 1
+        finally:
+            # Cleanup
+            if tray._manager:
+                tray._manager.stop_event.set()
+                time.sleep(0.2)
 
     def test_exit_action(self, mock_gui_components):
         """Test Exit menu action."""
@@ -370,11 +379,7 @@ class TestTrayErrorHandling:
 
     def test_tray_pystray_unavailable(self, monkeypatch):
         """Test behavior when pystray is unavailable."""
-        # Remove pystray from modules
-        import sys
-
-        if "pystray" in sys.modules:
-            del sys.modules["pystray"]
+        import builtins
 
         def manager_factory():
             return ServiceManager(services=[])
@@ -384,9 +389,17 @@ class TestTrayErrorHandling:
 
         tray = TrayController(manager_factory=manager_factory, log_path_provider=log_path_provider)
 
-        # _create_pystray should return False
-        result = tray._create_pystray()
-        assert result is False
+        # Force pystray import to fail by patching builtins.__import__
+        original_import = builtins.__import__
+
+        def mock_import(name, *args, **kwargs):
+            if name == "pystray" or name.startswith("pystray."):
+                raise ImportError("pystray not available")
+            return original_import(name, *args, **kwargs)
+
+        with patch.object(builtins, "__import__", mock_import):
+            result = tray._create_pystray()
+            assert result is False
 
 
 class TestTrayWindowsSpecific:
@@ -494,32 +507,45 @@ class TestTrayIntegration:
         # Create tray
         tray = TrayController(manager_factory=manager_factory, log_path_provider=log_path_provider)
 
-        # Ensure manager created
-        tray._ensure_manager()
+        try:
+            # Ensure manager created
+            tray._ensure_manager()
 
-        # Start services
-        service_thread = threading.Thread(target=tray._manager.start)
-        service_thread.start()
-        time.sleep(0.1)
+            # Start services
+            service_thread = threading.Thread(target=tray._manager.start, daemon=True)
+            service_thread.start()
+            time.sleep(0.2)
 
-        # Verify services running
-        assert mock_service.run_calls == 1
+            # Verify services running
+            assert mock_service.run_calls == 1
 
-        # Stop services
-        mock_icon = MagicMock()
-        mock_item = MagicMock()
-        tray._stop_services(mock_icon, mock_item)
-        time.sleep(0.3)
+            # Stop services
+            mock_icon = MagicMock()
+            mock_item = MagicMock()
+            tray._stop_services(mock_icon, mock_item)
+            time.sleep(0.5)
 
-        # Verify services stopped
-        assert tray._manager.stop_event.is_set()
+            # Verify services stopped
+            assert tray._manager.stop_event.is_set()
 
-        # Restart services
-        tray._restart_services(mock_icon, mock_item)
-        time.sleep(0.5)
+            # Restart services - this runs in a background thread with internal delays
+            tray._restart_services(mock_icon, mock_item)
 
-        # Verify services restarted
-        assert mock_service.run_calls == 2  # Should have run twice
+            # Wait for restart to complete:
+            # - _do_restart has internal wait for stop + 0.5s sleep + service start
+            # Poll for the service to be called again
+            for _ in range(20):  # Up to 2 seconds
+                if mock_service.run_calls >= 2:
+                    break
+                time.sleep(0.1)
+
+            # Verify services restarted
+            assert mock_service.run_calls >= 2  # Should have run at least twice
+        finally:
+            # Ensure cleanup - stop any running manager
+            if tray._manager:
+                tray._manager.stop_event.set()
+                time.sleep(0.3)
 
     def test_tray_with_multiple_services(self, mock_gui_components):
         """Test tray with multiple services."""

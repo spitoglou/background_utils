@@ -38,14 +38,18 @@ def cleanup_environment() -> Generator[None, None, None]:
         if thread != threading.main_thread() and thread.is_alive():
             if hasattr(thread, "_stop_event"):
                 thread._stop_event.set()  # type: ignore
-            # Give threads a chance to stop gracefully
+            # Also check for stop_event on the thread's target if accessible
+            if hasattr(thread, "_target") and hasattr(thread._target, "__self__"):
+                obj = thread._target.__self__
+                if hasattr(obj, "stop_event"):
+                    obj.stop_event.set()
 
     # Wait briefly for threads to stop
-    time.sleep(0.1)
+    time.sleep(0.2)
 
-    # Force join any remaining daemon threads
-    for thread in current_threads:
-        if thread != threading.main_thread() and thread.is_alive() and thread.daemon:
+    # Force join remaining threads with timeout
+    for thread in threading.enumerate():
+        if thread != threading.main_thread() and thread.is_alive():
             thread.join(timeout=0.5)
 
     # Restore modules
