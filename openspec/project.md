@@ -39,6 +39,15 @@
 - **Mypy**: Static type checking with strict mode
 - **Pytest-cov**: Test coverage reporting
 - **Pytest-timeout**: Prevent hanging tests
+- **Pytest-mock**: Mocking utilities for test isolation
+
+### Testing Requirements
+- **Minimum Coverage**: 85% overall test coverage
+- **Core Modules**: 90%+ coverage for config, logging
+- **Services**: 85%+ coverage for all services
+- **CLI Commands**: 80%+ coverage for CLI functionality
+- **CI/CD Integration**: GitHub Actions for automated testing
+- **Test Organization**: Mirror structure in tests/ directory
 
 ### Build & Packaging
 - **Setuptools**: Package building and distribution

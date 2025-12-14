@@ -140,7 +140,7 @@ The Wireless AutoConfig Service (wlansvc) is not running.
 ## Development
 
 - Python 3.12+
-- Tooling: ruff, mypy, pytest
+- Tooling: ruff, mypy, pytest, pytest-cov
 
 Common commands:
 
@@ -150,6 +150,88 @@ Common commands:
     uv run mypy .
 - Tests:
     uv run pytest
+- Tests with coverage:
+    uv run pytest --cov=src/background_utils --cov-report=term
+- Run specific test:
+    uv run pytest tests/services/test_gmail.py -v
+- Run Gmail service tests:
+    uv run pytest tests/services/test_gmail.py::TestGmailUtilities -v
+- Run tray controller tests:
+    uv run pytest tests/services/test_tray_simple.py -v
+
+## Testing Infrastructure
+
+The project includes comprehensive testing with:
+
+- **Test Coverage**: 25%+ and growing (target: 85%+)
+- **Gmail Service Tests**: 20+ tests covering core functionality
+- **Tray Controller Tests**: 10+ tests for menu actions and lifecycle
+- **Service Manager Tests**: Integration tests for multi-service scenarios
+- **CI/CD Pipeline**: GitHub Actions workflow with test matrix
+
+### Test Organization
+
+```
+tests/
+├── services/             # Service tests
+│   ├── test_gmail.py      # Gmail notification service tests
+│   ├── test_tray.py       # Tray controller tests (comprehensive)
+│   └── test_tray_simple.py # Tray controller tests (simplified)
+├── conftest.py           # Shared fixtures and utilities
+└── test_suite.py         # Existing test suite
+```
+
+### Running Tests
+
+```bash
+# Run all tests
+uv run pytest tests/ -v --tb=short
+
+# Run tests with coverage
+uv run pytest tests/ --cov=src/background_utils --cov-report=term
+
+# Run specific test module
+uv run pytest tests/services/test_gmail.py -v
+
+# Run specific test class
+uv run pytest tests/services/test_gmail.py::TestGmailUtilities -v
+
+# Run specific test method
+uv run pytest tests/services/test_gmail.py::TestGmailUtilities::test_decode_email_header_simple -v
+```
+
+### Test Fixtures
+
+The test suite includes powerful fixtures:
+
+- **mock_imap_connection**: Mock IMAP4_SSL for Gmail testing
+- **mock_notifications**: Mock notification system with tracking
+- **mock_file_system**: Temporary file system for cache testing
+- **mock_gui_components**: Mock GUI components to prevent hanging
+- **quick_intervals**: Fast service intervals for testing
+
+### CI/CD Pipeline
+
+The project uses GitHub Actions for continuous integration:
+
+- **Test Matrix**: Python 3.12, 3.13 on Ubuntu and Windows
+- **Quality Gates**: Linting, type checking, test coverage
+- **Coverage Reporting**: Codecov integration
+- **Automated Testing**: Runs on push and pull requests
+
+See `.github/workflows/test_and_ci.yml` for details.
+
+## Test Coverage Goals
+
+- **Core Modules** (config, logging): 90%+
+- **Services**: 85%+
+- **CLI Commands**: 80%+
+- **Overall Project**: 85%+
+
+Current coverage can be checked with:
+```bash
+uv run pytest tests/ --cov=src/background_utils --cov-report=term
+```
 
 ## Packaging
 
