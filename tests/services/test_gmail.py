@@ -5,7 +5,6 @@ from __future__ import annotations
 import threading
 import time
 from pathlib import Path
-from typing import Generator
 
 import pytest
 
@@ -247,7 +246,6 @@ class TestGmailConfiguration:
     def test_config_loading(self, monkeypatch):
         """Test loading Gmail configuration."""
         from background_utils.config import load_settings
-        from background_utils.services.gmail_notifier import run
 
         # Test with minimal config
         settings = load_settings()

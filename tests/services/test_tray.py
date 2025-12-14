@@ -4,8 +4,6 @@ from __future__ import annotations
 
 import threading
 import time
-from pathlib import Path
-from typing import Generator
 from unittest.mock import MagicMock, patch
 
 import pytest
