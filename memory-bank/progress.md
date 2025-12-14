@@ -34,13 +34,12 @@
 
 ## What's left to build
 
-- Test suite expansion:
+- Test suite expansion (current coverage ~56%, target 85%):
   - CLI invocation tests (Typer runner, output capture and exit codes)
   - Service loop tests with shortened intervals and graceful shutdown verification
-  - Sandbox process tests for continuous monitoring
+  - Wi-Fi command tests with mocked subprocess calls
+  - Gmail notifier tests with mocked IMAP connections
 - CI workflow (e.g., GitHub Actions): run ruff, mypy, pytest with coverage
-- Extract Wi‑Fi logic into `src/background_utils/utils/wifi.py` for reuse and better testability
-- Platform guards and graceful messages for non-Windows environments
 - Documentation enhancements: usage, troubleshooting, contribution guide
 
 ## Current status
@@ -73,8 +72,6 @@
 ## Next milestones
 
 1) **COMPLETED**: Created comprehensive CLAUDE.md for future Claude Code instances
-2) Add CLI tests and coverage reporting
+2) Add CLI tests and coverage reporting (target: 85% coverage)
 3) Introduce CI workflow (lint, type-check, tests)
-4) Extract Wi‑Fi logic to `utils/` and add platform checks
-5) Expand README with detailed command usage and troubleshooting
-6) Add more sandbox processes for system monitoring
+4) Expand README with detailed command usage and troubleshooting

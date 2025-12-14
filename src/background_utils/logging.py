@@ -35,13 +35,13 @@ def _ensure_log_file() -> tuple[Path, Path]:
 def setup_logging(level: str | None = None) -> None:
     """
     Configure loguru once with Rich-friendly sink and a file sink on Windows.
-    Level can be overridden via LOG_LEVEL env (default: INFO).
+    Level can be overridden via BGU_LOG_LEVEL env (default: INFO).
     """
     global _configured, _console
     if _configured:
         return
 
-    log_level = (level or os.getenv("LOG_LEVEL") or "INFO").upper()
+    log_level = (level or os.getenv("BGU_LOG_LEVEL") or "INFO").upper()
 
     # Remove default handler and attach rich console sink
     logger.remove()

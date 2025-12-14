@@ -6,8 +6,7 @@
 - Separation of concerns:
   - CLI: `background_utils.cli` (Typer root app) with command groups under `background_utils.cli.commands`
   - Services: `background_utils.services` (long-running workers/daemons)
-  - Sandbox: `background_utils.sandbox` (infinite background processes)
-  - Shared: `background_utils.config`, `background_utils.logging`, and future `background_utils.utils`
+  - Shared: `background_utils.config`, `background_utils.logging`
 - Entry points via `pyproject.toml`:
   - `background-utils` → `background_utils.cli.app:main`
   - Combined services with tray:
@@ -49,14 +48,6 @@
   - Actions: View Log (open Notepad), Stop Services, Restart Services, Exit
   - Ensures tray visibility on startup; hides and force-exits on Exit to avoid ghost icons
 
-## Sandbox Pattern
-
-- `sandbox.py` demonstrates:
-  - Infinite loop for continuous monitoring
-  - System resource checking (e.g., battery status)
-  - Graceful shutdown using `signal` handlers
-  - Logging with the project's standard setup
-
 ## Wi‑Fi Command (Windows)
 
 - Implemented in `cli/commands/wifi.py`:
@@ -67,7 +58,7 @@
   - Detects Windows service issues (e.g., wlansvc not running) and provides user-friendly error messages with resolution steps
   - Distinguishes between service errors and other errors
   - Formats error messages with clear instructions for the user
-- Future improvement: extract logic to `utils/wifi.py` and add platform guards
+- Platform guards already implemented with user-friendly messaging on non-Windows systems
 
 ## Testing
 
@@ -114,6 +105,4 @@
   2) Add to `_collect_default_services()` in `manager.py`
   3) Add entry point in `pyproject.toml`
   4) Update configuration in `config.py` if needed
-- Add new sandbox process:
-  1) Create `src/background_utils/<name>.py` with `main()` and infinite loop
-  2) Add `project.scripts` entry in `pyproject.toml`
+
