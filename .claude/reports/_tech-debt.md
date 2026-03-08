@@ -4,10 +4,7 @@ Tracked improvements to address later. Created from reviews, postmortems, and de
 
 ## High
 
-- [ ] **TD-001**: Test coverage at ~56%, target is 85%
-  - **Impact:** High
-  - **Source:** openspec/specs/testing/spec.md
-  - **Created:** 2026-03-08
+(none remaining)
 
 ## Medium
 
@@ -90,3 +87,6 @@ Tracked improvements to address later. Created from reviews, postmortems, and de
 
 - [x] **TD-005**: README lacks detailed usage, troubleshooting, and contribution guide
   - **Resolved:** 2026-03-08 — Rewrote README.md: removed stale references (deleted test_tray_simple.py, wrong coverage numbers), added proper code blocks for quick start, consolidated redundant sections, updated test counts and coverage to current state (64%, 82 tests), removed AI credits section.
+
+- [x] **TD-001**: Test coverage below 85% target (was ~64%)
+  - **Resolved:** 2026-03-08 — Increased overall coverage from 64% to 93%. Added 32 gmail_notifier tests (26% → 99%), 4 battery_monitor tests (54% → 93%), 2 example_service tests (69% → 93%), 2 my_service tests (69% → 90%), 10 ServiceManager tests (67% → 88%), 9 TrayController action/run tests. Total: 145 tests passing, 1 skipped. All modules above 85% target except `__main__.py` (0%, uncoverable entry guard).

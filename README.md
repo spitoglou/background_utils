@@ -133,9 +133,9 @@ uv run pytest tests/services/test_gmail.py::TestGmailUtilities -v
 ```
 tests/
   conftest.py             # Shared fixtures (mock IMAP, notifications, file system, GUI)
-  test_suite.py           # CLI and config tests
+  test_suite.py           # CLI, config, battery, example, my_service, manager, tray tests
   services/
-    test_gmail.py         # Gmail notification service (30+ tests)
+    test_gmail.py         # Gmail notification service (55+ tests)
     test_tray.py          # Tray controller + service manager (40+ tests)
 ```
 
@@ -157,7 +157,7 @@ See `.github/workflows/test_and_ci.yml`.
 | CLI commands | 80%+ |
 | Overall | 85%+ |
 
-Current overall coverage: ~64% (82 tests passing).
+Current overall coverage: ~93% (145 tests passing).
 
 ## Packaging
 
