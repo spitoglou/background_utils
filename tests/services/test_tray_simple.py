@@ -100,7 +100,7 @@ class TestTrayControllerSimple:
         assert tray._manager.stop_event.is_set()
 
     def test_tray_exit_action(self):
-        """Test exit action."""
+        """Test exit action sets _exiting flag for clean shutdown."""
 
         def manager_factory():
             return ServiceManager(services=[])
@@ -110,18 +110,16 @@ class TestTrayControllerSimple:
 
         tray = TrayController(manager_factory=manager_factory, log_path_provider=log_path_provider)
 
-        # Mock os._exit
-        with patch("os._exit") as mock_exit:
-            mock_icon = MagicMock()
-            mock_item = MagicMock()
+        mock_icon = MagicMock()
+        mock_item = MagicMock()
 
-            tray._exit_tray(mock_icon, mock_item)
+        tray._exit_tray(mock_icon, mock_item)
 
-            # Give brief time for background thread
-            time.sleep(0.1)
+        # Give brief time for background thread
+        time.sleep(0.1)
 
-            # Verify exit was called
-            mock_exit.assert_called_once_with(0)
+        # Verify clean shutdown: _exiting flag set, no os._exit
+        assert tray._exiting is True
 
     def test_tray_view_log_action(self, tmp_path):
         """Test view log action."""

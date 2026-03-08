@@ -89,8 +89,13 @@ def _get_profile_key(name: str) -> tuple[str | None, bool]:
     Get profile key for a Wi-Fi network.
     Returns (password, is_permission_error)
     """
+    # Sanitize SSID: strip quotes and control characters to prevent netsh parsing issues
+    sanitized = name.replace('"', "").replace("'", "")
+    if not sanitized or sanitized != sanitized.strip():
+        logger.warning(f"Skipping suspicious SSID: {name!r}")
+        return None, False
     # netsh wlan show profile name="SSID" key=clear
-    code, out, err = _run(["netsh", "wlan", "show", "profile", f'name="{name}"', "key=clear"])
+    code, out, err = _run(["netsh", "wlan", "show", "profile", f'name="{sanitized}"', "key=clear"])
     if code != 0:
         # Check if it's a permission/privilege error
         error_text = (err or out).lower()

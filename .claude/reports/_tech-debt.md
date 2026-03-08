@@ -2,20 +2,6 @@
 
 Tracked improvements to address later. Created from reviews, postmortems, and deferred findings.
 
-## Critical
-
-- [ ] **TD-006**: `os._exit(0)` bypasses cleanup in TrayController (manager.py:310, 418)
-  - **Impact:** Critical
-  - **Detail:** Terminates process without running `finally` blocks, flushing file buffers, or `atexit` handlers. Can corrupt log file or Gmail UID cache mid-write. Replace with `sys.exit(0)` or clean flag-based shutdown.
-  - **Source:** Code review 2026-03-08
-  - **Created:** 2026-03-08
-
-- [ ] **TD-007**: Gmail IMAP `uid("search", None, ...)` passes `None` where `str` expected (gmail_notifier.py:94)
-  - **Impact:** Critical
-  - **Detail:** Mypy flags `Argument 2 to "uid" has incompatible type "None"; expected "str"`. Works at runtime but is fragile. Pass `"UTF-8"` or correct charset.
-  - **Source:** Code review 2026-03-08
-  - **Created:** 2026-03-08
-
 ## High
 
 - [ ] **TD-001**: Test coverage at ~56%, target is 85%
@@ -26,18 +12,6 @@ Tracked improvements to address later. Created from reviews, postmortems, and de
 - [ ] **TD-002**: CI workflow not yet implemented (GitHub Actions)
   - **Impact:** High
   - **Source:** openspec/specs/testing/spec.md
-  - **Created:** 2026-03-08
-
-- [ ] **TD-009**: Unreachable code in manager.py:306, 379 and gmail_notifier.py:206
-  - **Impact:** High
-  - **Detail:** Dead code after `os._exit(0)`, unreachable returns, and unreachable branches flagged by mypy `[unreachable]`. Indicates logic errors or leftover code.
-  - **Source:** Code review 2026-03-08
-  - **Created:** 2026-03-08
-
-- [ ] **TD-010**: Shell injection risk in `_get_profile_key` (wifi.py:93)
-  - **Impact:** High
-  - **Detail:** Profile name interpolated with embedded quotes into netsh command: `f'name="{name}"'`. While `shell=False` mitigates full injection, unusual SSIDs could cause parsing issues. Sanitize input.
-  - **Source:** Code review 2026-03-08
   - **Created:** 2026-03-08
 
 ## Medium
@@ -52,39 +26,9 @@ Tracked improvements to address later. Created from reviews, postmortems, and de
   - **Source:** Initial infrastructure audit
   - **Created:** 2026-03-08
 
-- [ ] **TD-011**: `_lazy_import` is not actually lazy (app.py:31-34)
+- [ ] **TD-025**: Empty test stubs and overlapping test files
   - **Impact:** Medium
-  - **Detail:** Called at module level, so imports happen eagerly during `import background_utils.cli.app`. Misleading name. Either genuinely lazy-load or use normal imports.
-  - **Source:** Code review 2026-03-08
-  - **Created:** 2026-03-08
-
-- [ ] **TD-012**: `_collect_default_services` swallows import errors silently (manager.py:432-438)
-  - **Impact:** Medium
-  - **Detail:** Catches bare `Exception` on `my_service` import, downgrading real bugs (syntax errors, missing deps) to warnings. Other services imported without try/except -- inconsistent. Also causes mypy error from `my_run = None` vs `ServiceFunc`.
-  - **Source:** Code review 2026-03-08
-  - **Created:** 2026-03-08
-
-- [ ] **TD-015**: `logging.py` silently swallows file sink setup errors (logging.py:72-74)
-  - **Impact:** Medium
-  - **Detail:** Bare `except Exception: pass` means broken file logging is invisible. At minimum log the error to the console sink.
-  - **Source:** Code review 2026-03-08
-  - **Created:** 2026-03-08
-
-- [ ] **TD-016**: `_create_tray_image` returns `object` not `Image` (manager.py:160)
-  - **Impact:** Medium
-  - **Detail:** Loses all type information. Use `TYPE_CHECKING` import for PIL.Image to provide correct type hint.
-  - **Source:** Code review 2026-03-08
-  - **Created:** 2026-03-08
-
-- [ ] **TD-018**: Excessive info-level logging in TrayController menu actions (manager.py:198-313)
-  - **Impact:** Medium
-  - **Detail:** ~30+ `logger.info()` calls for step-by-step execution tracing ("THREAD: Lock acquired", "THREAD: _do_stop thread started"). Should be `logger.debug()`.
-  - **Source:** Code review 2026-03-08
-  - **Created:** 2026-03-08
-
-- [ ] **TD-019**: Duplicated chunked-sleep pattern across services
-  - **Impact:** Medium
-  - **Detail:** `while time.time() < end_time and not stop_event.is_set(): time.sleep(0.5)` duplicated in battery_monitor.py and gmail_notifier.py. Extract to shared utility.
+  - **Detail:** Several tests are no-ops (`test_email_parsing_error`, `test_service_cleanup`, `test_service_isolation` are `pass`). `test_tray.py` and `test_tray_simple.py` overlap significantly. Consolidate or implement. Also 13 mypy union-attr errors in test files from accessing `_manager` (Optional) without narrowing.
   - **Source:** Code review 2026-03-08
   - **Created:** 2026-03-08
 
@@ -95,22 +39,28 @@ Tracked improvements to address later. Created from reviews, postmortems, and de
   - **Source:** memory-bank migration
   - **Created:** 2026-03-08
 
-- [ ] **TD-024**: Multiple `Console()` instances with different configs (app.py:11, example.py:11, wifi.py:19)
-  - **Impact:** Low
-  - **Detail:** Each module creates its own `Console()` with different options. Standardize or share a single instance.
-  - **Source:** Code review 2026-03-08
-  - **Created:** 2026-03-08
-
-- [ ] **TD-025**: Empty test stubs and duplicate test files
-  - **Impact:** Low
-  - **Detail:** Several tests are no-ops (`test_email_parsing_error`, `test_service_cleanup`, `test_service_isolation` are `pass`). `test_tray.py` and `test_tray_simple.py` overlap significantly. Consolidate or implement.
-  - **Source:** Code review 2026-03-08
-  - **Created:** 2026-03-08
-
 ## Resolved
+
+- [x] **TD-006**: `os._exit(0)` bypasses cleanup in TrayController (manager.py)
+  - **Resolved:** 2026-03-08 — Replaced both `os._exit(0)` calls with flag-based clean shutdown. `_do_exit` sets `_exiting=True` and stops the icon; KeyboardInterrupt handler does the same and lets `run()` return naturally.
+
+- [x] **TD-007**: Gmail IMAP `uid("search", None, ...)` passes `None` where `str` expected
+  - **Resolved:** 2026-03-08 — Changed to `uid("search", "UTF-8", search_criteria)`.
 
 - [x] **TD-008**: `example_service.run` missing `stop_event` type annotation (example_service.py:11)
   - **Resolved:** 2026-03-08 — Added `stop_event: threading.Event` annotation
+
+- [x] **TD-009**: Unreachable code in manager.py and gmail_notifier.py
+  - **Resolved:** 2026-03-08 — Added type annotations to all pystray callback methods, fixed `_icon` typing with `Any` to prevent incorrect narrowing, added `type: ignore[unreachable]` for defensive `else` branch in `_get_highest_uid`. Reduced production mypy errors from 11 to 0.
+
+- [x] **TD-010**: Shell injection risk in `_get_profile_key` (wifi.py)
+  - **Resolved:** 2026-03-08 — Added SSID sanitization: strips quotes and control characters, rejects suspicious names with whitespace padding.
+
+- [x] **TD-011**: `_lazy_import` is not actually lazy (app.py)
+  - **Resolved:** 2026-03-08 — Replaced `_lazy_import` with `importlib` + `cast` with direct module imports. Removed unused `importlib` and `cast` imports.
+
+- [x] **TD-012**: `_collect_default_services` swallows import errors silently (manager.py)
+  - **Resolved:** 2026-03-08 — Narrowed bare `Exception` catch to `ImportError`. Pre-declared `my_run: ServiceFunc | None = None` to fix mypy type assignment error.
 
 - [x] **TD-013**: Duplicate test definitions in test_example.py and test_suite.py
   - **Resolved:** 2026-03-08 — Deleted `tests/test_example.py`
@@ -118,8 +68,20 @@ Tracked improvements to address later. Created from reviews, postmortems, and de
 - [x] **TD-014**: `getattr` used for known Settings fields (gmail_notifier.py:226-227)
   - **Resolved:** 2026-03-08 — Replaced with direct attribute access
 
+- [x] **TD-015**: `logging.py` silently swallows file sink setup errors
+  - **Resolved:** 2026-03-08 — Replaced bare `except Exception: pass` with `logger.warning()` call so broken file logging is visible in the console sink.
+
+- [x] **TD-016**: `_create_tray_image` returns `object` not `Image` (manager.py)
+  - **Resolved:** 2026-03-08 — Added `TYPE_CHECKING` import for `PIL.Image.Image`, changed return type to `PILImage`. Also typed `_icon` as `Any` to fix downstream narrowing issues.
+
 - [x] **TD-017**: Redundant `setup_logging()` calls in CLI commands
   - **Resolved:** 2026-03-08 — Removed calls + unused imports from example.py and wifi.py
+
+- [x] **TD-018**: Excessive info-level logging in TrayController menu actions
+  - **Resolved:** 2026-03-08 — Downgraded ~30 `logger.info()` step-by-step tracing calls to `logger.debug()`. Kept only significant user-facing action logs at info level.
+
+- [x] **TD-019**: Duplicated chunked-sleep pattern across services
+  - **Resolved:** 2026-03-08 — Extracted `interruptible_sleep()` to new `src/background_utils/utils.py`. Updated `battery_monitor.py` and `gmail_notifier.py` to use it. Removed unused `time` imports.
 
 - [x] **TD-020**: 14 ruff lint violations
   - **Resolved:** 2026-03-08 — Auto-fixed + manual line wraps
@@ -132,3 +94,6 @@ Tracked improvements to address later. Created from reviews, postmortems, and de
 
 - [x] **TD-023**: Missing `__init__.py` in `tests/services/`
   - **Resolved:** 2026-03-08 — Created empty `tests/services/__init__.py`
+
+- [x] **TD-024**: Multiple `Console()` instances with different configs
+  - **Resolved:** 2026-03-08 — Removed unused `Console()` from `app.py`. Remaining instances in `wifi.py` (Windows-safe settings) and `example.py` (`rich.get_console()`) serve distinct purposes and don't warrant consolidation.

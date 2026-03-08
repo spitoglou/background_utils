@@ -69,9 +69,9 @@ def setup_logging(level: str | None = None) -> None:
             retention=5,
             format="{time:YYYY-MM-DD HH:mm:ss} | {level: <7} | {message}",
         )
-    except Exception:
-        # Silently ignore file sink setup issues; console logging remains
-        pass
+    except Exception as exc:
+        # Log to console sink so broken file logging is visible
+        logger.warning(f"Failed to set up file logging sink: {exc}")
 
     _configured = True
 

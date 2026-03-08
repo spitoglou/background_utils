@@ -166,7 +166,7 @@ class TestTrayMenuActions:
                 time.sleep(0.2)
 
     def test_exit_action(self, mock_gui_components):
-        """Test Exit menu action."""
+        """Test Exit menu action sets _exiting flag for clean shutdown."""
 
         def manager_factory():
             return ServiceManager(services=[])
@@ -176,19 +176,17 @@ class TestTrayMenuActions:
 
         tray = TrayController(manager_factory=manager_factory, log_path_provider=log_path_provider)
 
-        # Mock os._exit to prevent actual exit
-        with patch("os._exit") as mock_exit:
-            mock_icon = MagicMock()
-            mock_item = MagicMock()
+        mock_icon = MagicMock()
+        mock_item = MagicMock()
 
-            # Call exit action
-            tray._exit_tray(mock_icon, mock_item)
+        # Call exit action
+        tray._exit_tray(mock_icon, mock_item)
 
-            # Give exit thread time to work
-            time.sleep(0.2)
+        # Give exit thread time to work
+        time.sleep(0.2)
 
-            # Verify exit was called
-            mock_exit.assert_called_once_with(0)
+        # Verify clean shutdown: _exiting flag set, no os._exit
+        assert tray._exiting is True
 
 
 class TestTrayLifecycleManagement:

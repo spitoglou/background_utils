@@ -5,13 +5,13 @@ import imaplib
 import os
 import ssl
 import threading
-import time
 from email.header import decode_header
 from pathlib import Path
 from typing import NamedTuple
 
 from background_utils.config import load_settings
 from background_utils.logging import logger, setup_logging
+from background_utils.utils import interruptible_sleep
 
 
 class EmailSummary(NamedTuple):
@@ -93,7 +93,7 @@ def _get_new_emails(mail: imaplib.IMAP4_SSL, last_uid: int) -> tuple[list[EmailS
         # Search for emails with UID greater than last_uid
         search_criteria = f"UID {last_uid + 1}:*"
         logger.debug(f"Searching with criteria: {search_criteria}")
-        _, message_ids = mail.uid("search", None, search_criteria)
+        _, message_ids = mail.uid("search", "UTF-8", search_criteria)
 
         if not message_ids[0]:
             logger.debug("No new emails found")
@@ -201,7 +201,7 @@ def _get_highest_uid(mail: imaplib.IMAP4_SSL) -> int:
         elif isinstance(uid_response, tuple) and len(uid_response) >= 2:
             uid_str = str(uid_response[1]).split()[-1].rstrip(")")
         else:
-            return 0
+            return 0  # type: ignore[unreachable]  # defensive: unknown IMAP response format
         return int(uid_str)
 
     except Exception as exc:
@@ -303,9 +303,7 @@ def run(stop_event: threading.Event, check_interval_seconds: float = 60.0) -> No
                     mail_connection = None
 
             # Sleep in small chunks to be responsive to stop_event
-            end_time = time.time() + check_interval_seconds
-            while time.time() < end_time and not stop_event.is_set():
-                time.sleep(0.5)
+            interruptible_sleep(check_interval_seconds, stop_event)
 
     except Exception as exc:
         logger.exception(f"Gmail service crashed: {exc}")

@@ -1,9 +1,9 @@
 import threading
-import time
 
 import psutil
 
 from background_utils.logging import logger, setup_logging
+from background_utils.utils import interruptible_sleep
 
 
 def run(stop_event: threading.Event, interval_seconds: float = 60.0) -> None:
@@ -23,8 +23,8 @@ def run(stop_event: threading.Event, interval_seconds: float = 60.0) -> None:
                 else:
                     logger.info("Power is not plugged in.")
                 if (
-                    battery.percent is not None 
-                    and battery.percent < 15 
+                    battery.percent is not None
+                    and battery.percent < 15
                     and not battery.power_plugged
                 ):
                     logger.warning("Battery low! Plug in the charger.")
@@ -34,9 +34,7 @@ def run(stop_event: threading.Event, interval_seconds: float = 60.0) -> None:
             logger.exception(f"Error checking battery status: {e}")
 
         # Sleep in small chunks to be more responsive to stop_event
-        end_time = time.time() + interval_seconds
-        while time.time() < end_time and not stop_event.is_set():
-            time.sleep(0.5)
+        interruptible_sleep(interval_seconds, stop_event)
 
     logger.info("Battery monitor stopped")
 
