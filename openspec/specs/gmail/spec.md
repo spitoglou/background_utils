@@ -78,11 +78,14 @@ The system SHALL require Gmail App Passwords for authentication.
 ## Additional Context
 
 **Implementation Details:**
-- See [Active Context - Gmail Service](memory-bank/activeContext.md#gmail-service)
-- Gmail IMAP UID boundary issue resolved
-- Persistent UID cache for service restart continuity
+- Gmail IMAP `UID X:*` search can include boundary UID X in results — must explicitly
+  filter UIDs to prevent duplicate notifications
+- Persistent UID cache at `%LOCALAPPDATA%\background-utils\gmail_last_uid.txt` for
+  service restart continuity
+- Automatic reconnection on IMAP connection failures
 
 **Security Requirements:**
-- Requires Gmail App Passwords (never main password)
-- Configuration via environment variables only
-- See [Tech Context - Security](memory-bank/techContext.md#security-constraints)
+- Requires Gmail App Passwords (never main password); enforce 2FA
+- Configuration via environment variables only (`BGU_GMAIL_EMAIL`, `BGU_GMAIL_PASSWORD`)
+- Credentials must never appear in logs or notification content
+- `.env` files must not be committed to version control

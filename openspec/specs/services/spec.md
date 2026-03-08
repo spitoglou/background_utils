@@ -113,8 +113,17 @@ The system SHALL provide individual entry points for each service.
 ## Additional Context
 
 **Implementation Details:**
-- See [System Patterns - Service Pattern](memory-bank/systemPatterns.md#service-pattern)
-- Critical lessons learned in [Active Context](memory-bank/activeContext.md#critical-tray-lessons-learned)
+- Cooperative services expose `run(stop_event: threading.Event)` with shared stop event
+- ServiceManager starts each service on its own thread with 10-second shutdown timeout
+- Continues other services if one crashes (logs exception)
+
+**Critical Tray Lessons Learned:**
+- pystray is more reliable than native Win32 `Shell_NotifyIcon` on Windows 11
+- Menu handlers must run in background threads to avoid blocking the pystray event loop
+- Never call `_ensure_manager()` from menu handlers — use existing manager reference
+- Use `icon.run()` in daemon thread rather than `run_detached()` for better callback reliability
+- Explicit visibility toggling on startup helps shell recognition
+- `os._exit(0)` prevents ghost icons under `pythonw`
 
 **Technical Achievements:**
 - Windows 11 tray compatibility solved (pystray solution)

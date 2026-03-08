@@ -143,6 +143,7 @@ uv run pytest tests/test_suite.py::test_cli_root_help
 - **Format**: `<type>(scope): description`
 - **Types**: `feat`, `fix`, `docs`, `test`, `chore`, `refactor`
 - **Scope**: Module or component affected (e.g., `wifi`, `services`, `cli`)
+- **No AI attribution**: Never mention the LLM or AI assistant (Claude, GPT, Copilot, etc.) in commit messages. Commits represent project changes, not who or what authored them.
 - **Examples**:
   - `feat(wifi): improve error handling for Windows Wi-Fi service issues`
   - `test(core): improve test reliability and cleanup for service components`

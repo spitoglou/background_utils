@@ -128,6 +128,69 @@ def run(stop_event: threading.Event) -> None:
 - Pydantic validation with sensible defaults
 - `.env` file support for local development
 
+## Commit Message Rules
+
+- Follow conventional commits: `<type>(scope): description`
+- **Never mention the LLM or AI assistant** (Claude, GPT, Copilot, etc.) in commit messages. Commits describe *what changed and why*, not *who or what wrote the code*.
+
+## Agentic Infrastructure
+
+### Skills (`.claude/skills/`)
+
+- **verification-before-completion**: Enforces evidence-based completion claims. Must run
+  verification commands (`pytest`, `ruff`, `mypy`, `openspec validate`) and confirm output
+  before claiming any task is done, fixed, or passing. Use before committing or marking
+  OpenSpec tasks complete.
+- **systematic-debugging**: Structured 4-phase debugging process (root cause investigation,
+  pattern analysis, hypothesis testing, implementation). Use before proposing fixes for any
+  bug, test failure, or unexpected behavior. Prevents random-fix thrashing.
+- **agent-coordination**: Orchestration protocol for multi-agent workflows. Defines the
+  report system, coordination protocols (sequential pipeline, parallel sweep), context
+  injection patterns, and session initialization. Load when coordinating across agents.
+
+### Agents (`.claude/agents/`)
+
+- **code-reviewer**: Senior code reviewer that checks implementations against OpenSpec
+  proposals, tasks.md, and project coding standards. Use after completing a significant
+  implementation step or feature. Reports issues by severity (critical/important/suggestion).
+- **security-engineer**: Security scanning and threat modeling. Modes: `scan` (OWASP Top 10,
+  CVE, secret detection, input validation) and `threat-model` (STRIDE, attack surface,
+  data flow). Focus areas: credential handling, IMAP connections, netsh commands,
+  %LOCALAPPDATA% file access.
+- **test-engineer**: Test execution and coverage analysis. Runs pytest suites, identifies
+  flaky tests, generates coverage reports, and recommends areas needing tests. Uses
+  project fixtures and coverage priority map.
+
+### Slash Commands
+
+**OpenSpec** (`.claude/commands/openspec/`):
+- `/openspec proposal` -- Scaffold a new OpenSpec change proposal
+- `/openspec apply` -- Implement an approved OpenSpec change
+- `/openspec archive` -- Archive a deployed OpenSpec change
+
+**Agent Orchestration** (`.claude/commands/agents/`):
+- `/agents:ci` -- Run CI pipeline (lint + type-check + test)
+- `/agents:review` -- Code review via code-reviewer agent
+- `/agents:security` -- Security scan via security-engineer agent
+- `/agents:coverage` -- Coverage analysis via test-engineer agent
+
+**Workflows** (`.claude/commands/`):
+- `/test` -- Run pytest with UV
+- `/review-full` -- 4-level review: peer, architecture, security, reliability
+- `/debt` -- View and manage tech debt registry
+- `/release` -- Version bump and release with commitizen
+- `/archive` -- Archive resolved reports to `.claude/reports/archive/`
+- `/session:context` -- Initialize session with active reports, tech debt, and OpenSpec state
+
+### Reports (`.claude/reports/`)
+
+Persistent artifacts produced by agent workflows. See the agent-coordination skill
+for full protocol details.
+
+- `_registry.md` -- Index of active reports with status tracking
+- `_tech-debt.md` -- Known technical debt items (TD-001 through TD-005)
+- Subdirectories: `review/`, `security/`, `tests/`, `sre/`, `ci/`, `rfc/`, `archive/`
+
 ## Available Services
 
 ### Gmail Notification Service (`gmail_notifier.py`)
@@ -162,134 +225,32 @@ def run(stop_event: threading.Event) -> None:
 - **Process Management**: Handles Windows threading limitations for signal handlers
 - **Graceful Shutdown**: 10-second timeout per service with proper cleanup
 
-# Memory Bank
+## Session Context
 
-I am Pilot, an expert software engineer with a unique characteristic: my memory resets completely between sessions. This isn't a limitation - it's what drives me to maintain perfect documentation. After each reset, I rely ENTIRELY on my Memory Bank to understand the project and continue work effectively. I MUST read ALL memory bank files at the start of EVERY task - this is not optional.
+This project uses **reports + OpenSpec specs + CLAUDE.md** as its persistent context
+system. There is no separate memory-bank.
 
-## Memory Bank Structure
+### Session Initialization
 
-The Memory Bank consists of core files and optional context files, all in Markdown format. Files build upon each other in a clear hierarchy:
+At the start of a session, run `/session:context` or manually:
 
-```
-flowchart TD
-    PB[projectbrief.md] --> PC[productContext.md]
-    PB --> SP[systemPatterns.md]
-    PB --> TC[techContext.md]
-    
-    PC --> AC[activeContext.md]
-    SP --> AC
-    TC --> AC
-    
-    AC --> P[progress.md]
-```
+1. Read `.claude/reports/_registry.md` for active reports
+2. Read `.claude/reports/_tech-debt.md` for known issues
+3. Run `openspec list` to see active changes
+4. Review CLAUDE.md for architecture and patterns
 
-### Core Files (Required)
+### Persistent Context Sources
 
-1. `projectbrief.md`
-   - Foundation document that shapes all other files
-   - Created at project start if it doesn't exist
-   - Defines core requirements and goals
-   - Source of truth for project scope
+| Source | Purpose |
+|--------|---------|
+| `CLAUDE.md` | Architecture, patterns, commands, conventions |
+| `openspec/specs/` | Current truth — what IS built |
+| `openspec/changes/` | Proposals — what SHOULD change |
+| `.claude/reports/` | Agent-produced artifacts (reviews, scans, tests) |
+| `.claude/reports/_tech-debt.md` | Known technical debt items |
 
-2. `productContext.md`
-   - Why this project exists
-   - Problems it solves
-   - How it should work
-   - User experience goals
+### Commit Hygiene
 
-3. `activeContext.md`
-   - Current work focus
-   - Recent changes
-   - Next steps
-   - Active decisions and considerations
-   - Important patterns and preferences
-   - Learnings and project insights
-
-4. `systemPatterns.md`
-   - System architecture
-   - Key technical decisions
-   - Design patterns in use
-   - Component relationships
-   - Critical implementation paths
-
-5. `techContext.md`
-   - Technologies used
-   - Development setup
-   - Technical constraints
-   - Dependencies
-   - Tool usage patterns
-
-6. `progress.md`
-   - What works
-   - What's left to build
-   - Current status
-   - Known issues
-   - Evolution of project decisions
-
-### Additional Context
-
-Create additional files/folders within memory-bank/ when they help organize:
-
-- Complex feature documentation
-- Integration specifications
-- API documentation
-- Testing strategies
-- Deployment procedures
-
-## Core Workflows
-
-### Plan Mode
-
-```
-flowchart TD
-    Start[Start] --> ReadFiles[Read Memory Bank]
-    ReadFiles --> CheckFiles{Files Complete?}
-    
-    CheckFiles -->|No| Plan[Create Plan]
-    Plan --> Document[Document in Chat]
-    
-    CheckFiles -->|Yes| Verify[Verify Context]
-    Verify --> Strategy[Develop Strategy]
-    Strategy --> Present[Present Approach]
-```
-
-### Act Mode
-
-```
-flowchart TD
-    Start[Start] --> Context[Check Memory Bank]
-    Context --> Update[Update Documentation]
-    Update --> Execute[Execute Task]
-    Execute --> Document[Document Changes]
-```
-
-## Documentation Updates
-
-Memory Bank updates occur when:
-
-1. Discovering new project patterns
-2. After implementing significant changes
-3. When user requests with **update memory bank** (MUST review ALL files)
-4. When context needs clarification
-
-```
-flowchart TD
-    Start[Update Process]
-    
-    subgraph Process
-        P1[Review ALL Files]
-        P2[Document Current State]
-        P3[Clarify Next Steps]
-        P4[Document Insights & Patterns]
-        
-        P1 --> P2 --> P3 --> P4
-    end
-    
-    Start --> Process
-```
-
-Note: When triggered by **update memory bank**, I MUST review every memory bank file, even if some don't require updates. Focus particularly on activeContext.md and progress.md as they track current state.
-
-REMEMBER: After every memory reset, I begin completely fresh. The Memory Bank is my only link to previous work. It must be maintained with precision and clarity, as my effectiveness depends entirely on its accuracy.
-
-- Before commiting, always check that the markdown files are professionally formatted. Use markdown node utility for this purpose. If not present, install it.
+- Before committing, verify markdown files are well-formatted
+- Follow conventional commits: `<type>(scope): description`
+- Never mention AI/LLM assistants in commit messages

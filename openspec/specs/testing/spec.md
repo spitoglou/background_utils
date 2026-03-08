@@ -114,5 +114,8 @@ The system SHALL provide comprehensive test documentation.
 - Report coverage trends
 
 **Reference Materials:**
-- See [System Patterns - Testing Strategy](memory-bank/systemPatterns.md#testing)
-- See [Tech Context - Dev Tooling](memory-bank/techContext.md#dev-tooling)
+- Test runner: `uv run pytest` with pytest-cov and pytest-mock
+- Dev tooling: UV (package manager), Ruff (lint), Mypy (types, strict mode), Pytest
+- Test fixtures in `tests/conftest.py`: `cleanup_environment`, `isolate_logging`,
+  `mock_gui_components`, `quick_intervals`, `mock_imap_connection`, `mock_notifications`,
+  `mock_file_system`

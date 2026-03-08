@@ -60,11 +60,11 @@ The system SHALL handle non-Windows platforms gracefully.
 ## Additional Context
 
 **Implementation Details:**
-- See [Active Context - Wi-Fi Service](memory-bank/activeContext.md#wifi-service-lessons-learned)
-- Windows Wireless AutoConfig Service dependency
+- Windows Wireless AutoConfig Service (wlansvc) must be running for Wi-Fi commands
 - Admin privileges required for password operations
+- Uses `netsh` commands; platform guards prevent execution on non-Windows
 
-**Error Handling:**
-- Improved error handling with user-friendly messages
-- Service detection and resolution steps provided
-- See [Progress - Wi-Fi Improvements](memory-bank/progress.md#wifi-command-error-handling)
+**Error Handling Lessons Learned:**
+- Detect wlansvc service errors and provide user-friendly messages with resolution steps
+- Distinguish between service errors and other errors for targeted guidance
+- Format error messages with clear instructions (e.g., "Run `net start wlansvc` as admin")
