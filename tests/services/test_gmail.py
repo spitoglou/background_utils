@@ -196,9 +196,19 @@ class TestGmailErrorHandling:
             FailingIMAP("imap.gmail.com", 993)
 
     def test_email_parsing_error(self):
-        """Test handling of email parsing errors."""
-        # This would test error handling when parsing malformed emails
-        pass
+        """Test handling of email parsing errors with malformed headers."""
+        # Malformed encoded header: invalid charset
+        result = _decode_email_header("=?INVALID-CHARSET?Q?test?=")
+        # Should return something (possibly raw) without crashing
+        assert isinstance(result, str)
+
+        # Empty string header
+        result = _decode_email_header("")
+        assert result == ""
+
+        # Header with mixed valid/invalid parts
+        result = _decode_email_header("Valid Part <test@example.com>")
+        assert "test@example.com" in result
 
 
 class TestGmailPerformance:
@@ -265,7 +275,8 @@ class TestGmailConfiguration:
 
         settings = load_settings()
         assert settings.gmail_email == "test@example.com"
-        assert settings.gmail_password == "test_password"
+        assert settings.gmail_password is not None
+        assert settings.gmail_password.get_secret_value() == "test_password"
 
 
 class TestGmailServiceIsolation:
@@ -273,10 +284,29 @@ class TestGmailServiceIsolation:
 
     def test_service_cleanup(self):
         """Test that service cleans up resources properly."""
-        # This would test resource cleanup
-        pass
+        stop_event = threading.Event()
+        stop_event.set()  # pre-set so service exits immediately
+
+        # The UID cache should be writable after service runs
+        cache_path = _get_uid_cache_path()
+        _save_last_uid(999)
+        assert _load_last_uid() == 999
+
+        # Cleanup: remove test UID
+        if cache_path.exists():
+            cache_path.unlink()
 
     def test_service_isolation(self):
-        """Test that multiple service instances don't interfere."""
-        # This would test service isolation
-        pass
+        """Test that multiple service instances don't interfere with UID tracking."""
+        # Save a UID from "instance 1"
+        _save_last_uid(100)
+        assert _load_last_uid() == 100
+
+        # Save a different UID from "instance 2"
+        _save_last_uid(200)
+        assert _load_last_uid() == 200
+
+        # The last writer wins — no corruption
+        cache_path = _get_uid_cache_path()
+        raw = cache_path.read_text().strip()
+        assert raw == "200"

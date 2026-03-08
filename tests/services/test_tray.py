@@ -338,8 +338,9 @@ class TestTrayThreading:
 
         # Test lock usage in critical sections
         with tray._lock:
-            # Should be able to acquire lock
-            assert True
+            # Lock acquired successfully — no deadlock or error
+            locked = True
+        assert locked
 
 
 class TestTrayErrorHandling:
@@ -370,8 +371,7 @@ class TestTrayErrorHandling:
         # Give time for error handling
         time.sleep(0.2)
 
-        # Should not raise exception
-        assert True
+        # No exception raised — error was handled gracefully
 
     def test_tray_pystray_unavailable(self, monkeypatch):
         """Test behavior when pystray is unavailable."""
@@ -609,7 +609,7 @@ class TestTrayEdgeCases:
         tray._restart_services(mock_icon, mock_item)
 
         time.sleep(0.2)
-        assert True  # Should not raise exceptions
+        # No exception raised — operations handled gracefully with no services
 
     def test_tray_rapid_menu_actions(self, mock_gui_components):
         """Test rapid menu actions."""
@@ -631,4 +631,4 @@ class TestTrayEdgeCases:
             tray._restart_services(mock_icon, mock_item)
 
         time.sleep(0.3)
-        assert True  # Should not raise exceptions
+        # No exception raised — rapid actions handled gracefully

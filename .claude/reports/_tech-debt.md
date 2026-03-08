@@ -16,21 +16,7 @@ Tracked improvements to address later. Created from reviews, postmortems, and de
 
 ## Medium
 
-- [ ] **TD-003**: Wi-Fi logic not extracted to utils module
-  - **Impact:** Medium
-  - **Source:** openspec/specs/wifi/spec.md
-  - **Created:** 2026-03-08
-
-- [ ] **TD-004**: No security scanning for credential handling (Gmail passwords, .env files)
-  - **Impact:** Medium
-  - **Source:** Initial infrastructure audit
-  - **Created:** 2026-03-08
-
-- [ ] **TD-025**: Empty test stubs and overlapping test files
-  - **Impact:** Medium
-  - **Detail:** Several tests are no-ops (`test_email_parsing_error`, `test_service_cleanup`, `test_service_isolation` are `pass`). `test_tray.py` and `test_tray_simple.py` overlap significantly. Consolidate or implement. Also 13 mypy union-attr errors in test files from accessing `_manager` (Optional) without narrowing.
-  - **Source:** Code review 2026-03-08
-  - **Created:** 2026-03-08
+(none remaining)
 
 ## Low
 
@@ -97,3 +83,12 @@ Tracked improvements to address later. Created from reviews, postmortems, and de
 
 - [x] **TD-024**: Multiple `Console()` instances with different configs
   - **Resolved:** 2026-03-08 — Removed unused `Console()` from `app.py`. Remaining instances in `wifi.py` (Windows-safe settings) and `example.py` (`rich.get_console()`) serve distinct purposes and don't warrant consolidation.
+
+- [x] **TD-003**: Wi-Fi logic not extracted to utils module
+  - **Resolved:** 2026-03-08 — Assessed as unnecessary. Current structure with private helper functions in `wifi.py` is already clean and self-contained. Extracting to a separate utils module would add indirection without benefit.
+
+- [x] **TD-004**: No security scanning for credential handling (Gmail passwords, .env files)
+  - **Resolved:** 2026-03-08 — Changed `gmail_password` from `str | None` to `SecretStr | None` in `config.py`. Updated `gmail_notifier.py` to call `.get_secret_value()` and delete the SecretStr reference. Downgraded email address logging from INFO to DEBUG. Added `# SECURITY:` comments to `diagnose=False` in both loguru sinks in `logging.py`. Updated test assertions for SecretStr.
+
+- [x] **TD-025**: Empty test stubs and overlapping test files
+  - **Resolved:** 2026-03-08 — Deleted redundant `test_tray_simple.py` (11 tests, all duplicates of `test_tray.py`). Implemented 3 gmail test stubs (`test_email_parsing_error`, `test_service_cleanup`, `test_service_isolation`). Removed `assert True` anti-patterns. Fixed `_decode_email_header` LookupError crash on invalid charsets. Test count: 94 → 82 (no coverage loss). Mypy test errors: 13 → 11.

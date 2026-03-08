@@ -52,7 +52,7 @@ def setup_logging(level: str | None = None) -> None:
         colorize=True,
         enqueue=False,
         backtrace=False,
-        diagnose=False,
+        diagnose=False,  # SECURITY: True leaks local vars (secrets)
         format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <7}</level> | {message}",
     )
 
@@ -64,7 +64,7 @@ def setup_logging(level: str | None = None) -> None:
             level=log_level,
             enqueue=False,
             backtrace=False,
-            diagnose=False,
+            diagnose=False,  # SECURITY: True leaks local vars (secrets)
             rotation="5 MB",
             retention=5,
             format="{time:YYYY-MM-DD HH:mm:ss} | {level: <7} | {message}",

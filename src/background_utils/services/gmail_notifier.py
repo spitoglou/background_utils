@@ -29,7 +29,11 @@ def _decode_email_header(header: str | None) -> str:
     result = ""
     for part, encoding in decoded_parts:
         if isinstance(part, bytes):
-            result += part.decode(encoding or "utf-8", errors="replace")
+            try:
+                result += part.decode(encoding or "utf-8", errors="replace")
+            except (LookupError, UnicodeDecodeError):
+                # Unknown charset — fall back to raw bytes decoded as UTF-8
+                result += part.decode("utf-8", errors="replace")
         else:
             result += part
     return result.strip()
@@ -77,7 +81,7 @@ def _connect_gmail(email_address: str, password: str) -> imaplib.IMAP4_SSL:
         mail = imaplib.IMAP4_SSL("imap.gmail.com", 993, ssl_context=context)
         mail.login(email_address, password)
 
-        logger.info(f"Successfully connected to Gmail for {email_address}")
+        logger.debug(f"Successfully connected to Gmail for {email_address}")
         return mail
     except Exception as exc:
         logger.error(f"Failed to connect to Gmail: {exc}")
@@ -222,9 +226,9 @@ def run(stop_event: threading.Event, check_interval_seconds: float = 60.0) -> No
 
     # Get Gmail credentials from settings
     gmail_email = settings.gmail_email
-    gmail_password = settings.gmail_password
+    gmail_password_secret = settings.gmail_password
 
-    if not gmail_email or not gmail_password:
+    if not gmail_email or not gmail_password_secret:
         logger.error(
             "Gmail credentials not configured. "
             "Set BGU_GMAIL_EMAIL and BGU_GMAIL_PASSWORD environment variables."
@@ -232,8 +236,12 @@ def run(stop_event: threading.Event, check_interval_seconds: float = 60.0) -> No
         logger.info("For security, use an App Password instead of your main Gmail password.")
         return
 
+    # Extract plaintext password once; clear reference to SecretStr
+    gmail_password = gmail_password_secret.get_secret_value()
+    del gmail_password_secret
+
     logger.info("Starting Gmail notification service")
-    logger.info(f"Monitoring: {gmail_email}")
+    logger.debug(f"Monitoring: {gmail_email}")
     logger.info(f"Check interval: {check_interval_seconds}s")
 
     mail_connection = None
