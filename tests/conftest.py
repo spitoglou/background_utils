@@ -14,9 +14,6 @@ import pytest
 @pytest.fixture(autouse=True)
 def cleanup_environment() -> Generator[None, None, None]:
     """Ensure clean test environment and proper cleanup."""
-    # Store original state
-    original_threads = threading.active_count()
-
     # Set environment for headless testing
     os.environ["PYTEST_RUNNING"] = "1"
     os.environ["HEADLESS"] = "1"
@@ -37,7 +34,7 @@ def cleanup_environment() -> Generator[None, None, None]:
     for thread in current_threads:
         if thread != threading.main_thread() and thread.is_alive():
             if hasattr(thread, "_stop_event"):
-                thread._stop_event.set()  # type: ignore
+                thread._stop_event.set()
             # Also check for stop_event on the thread's target if accessible
             if hasattr(thread, "_target") and hasattr(thread._target, "__self__"):
                 obj = thread._target.__self__

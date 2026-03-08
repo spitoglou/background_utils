@@ -6,8 +6,6 @@ import rich
 import typer
 from rich.table import Table
 
-from background_utils.logging import setup_logging
-
 console = rich.get_console()
 app = typer.Typer(no_args_is_help=True, add_completion=False, help="Example commands")
 
@@ -17,7 +15,6 @@ def hello(name: str = "world", excited: bool = False) -> None:
     """
     Simple example command.
     """
-    setup_logging()
     greeting = f"Hello, {name}{'!' if excited else '.'}"
     console.print(f"[bold green]{greeting}[/bold green]")
 

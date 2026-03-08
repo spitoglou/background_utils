@@ -9,7 +9,7 @@ import typer
 from rich.console import Console
 from rich.table import Table
 
-from background_utils.logging import logger, setup_logging
+from background_utils.logging import logger
 
 # Force UTF-8 on Windows consoles to avoid cp1252 encoding issues (e.g., for dashes)
 if os.name == "nt":
@@ -34,7 +34,7 @@ def _run(cmd: list[str]) -> tuple[int, str, str]:
 def _check_service_error(error_text: str) -> tuple[bool, str | None]:
     """Check if error is due to Windows service issues and provide helpful message."""
     error_lower = error_text.lower()
-    
+
     if "wireless autoconfig service" in error_lower and "not running" in error_lower:
         return True, (
             "The Wireless AutoConfig Service (wlansvc) is not running.\n"
@@ -44,19 +44,19 @@ def _check_service_error(error_text: str) -> tuple[bool, str | None]:
             "  sc config wlansvc start= auto\n"
             "  net start wlansvc"
         )
-    
+
     if "wlan autoconfig service" in error_lower:
         return True, (
             "Windows WLAN AutoConfig service is not available.\n"
             "This might be a virtual machine or system without Wi-Fi support."
         )
-    
+
     if "wireless lan service" in error_lower or "wlansvc" in error_lower:
         return True, (
             "Windows Wi-Fi service is not available or not running.\n"
             "Try starting the service: net start wlansvc"
         )
-    
+
     return False, None
 
 
@@ -66,12 +66,12 @@ def _list_profiles() -> list[str]:
     if code != 0:
         error_text = err or out
         is_service_error, service_message = _check_service_error(error_text)
-        
+
         if is_service_error:
             raise RuntimeError(f"Windows Wi-Fi service issue:\n{service_message}")
         else:
             raise RuntimeError(f"Failed to list profiles: {error_text}")
-            
+
     profiles: list[str] = []
     for line in out.splitlines():
         # Lines like: "    All User Profile     : MyWifi"
@@ -94,14 +94,17 @@ def _get_profile_key(name: str) -> tuple[str | None, bool]:
     if code != 0:
         # Check if it's a permission/privilege error
         error_text = (err or out).lower()
-        is_permission_error = any(phrase in error_text for phrase in [
-            "one or more parameters for the command are not correct",
-            "access is denied",
-            "privilege",
-            "administrator"
-        ])
+        is_permission_error = any(
+            phrase in error_text
+            for phrase in [
+                "one or more parameters for the command are not correct",
+                "access is denied",
+                "privilege",
+                "administrator",
+            ]
+        )
         return None, is_permission_error
-    
+
     key_line_prefix = "Key Content"
     for line in out.splitlines():
         if key_line_prefix in line and ":" in line:
@@ -116,15 +119,15 @@ def _list_networks() -> list[dict[str, str]]:
     if code != 0:
         error_text = err or out
         is_service_error, service_message = _check_service_error(error_text)
-        
+
         if is_service_error:
             raise RuntimeError(f"Windows Wi-Fi service issue:\n{service_message}")
         else:
             raise RuntimeError(f"Failed to list networks: {error_text}")
-    
+
     networks = []
     current_network: dict[str, str] = {}
-    
+
     for line in out.splitlines():
         line = line.strip()
         if line.startswith("SSID"):
@@ -150,11 +153,11 @@ def _list_networks() -> list[dict[str, str]]:
             parts = line.split(":", 1)
             if len(parts) == 2:
                 current_network["encryption"] = parts[1].strip()
-    
+
     # Add last network if exists
     if current_network:
         networks.append(current_network)
-    
+
     return networks
 
 
@@ -165,13 +168,13 @@ def _gather_profiles() -> tuple[list[WifiProfile], int]:
     """
     profiles = []
     permission_errors = 0
-    
+
     for name in _list_profiles():
         pwd, is_permission_error = _get_profile_key(name)
         if is_permission_error:
             permission_errors += 1
         profiles.append(WifiProfile(name=name, password=pwd))
-    
+
     return profiles, permission_errors
 
 
@@ -183,29 +186,28 @@ def show_passwords(
         "-o",
         help="Optional output format: 'table' (default) or 'json'",
         metavar="FORMAT",
-    )
+    ),
 ) -> None:
     """
     Show saved Wi-Fi profiles and their passwords (Windows only).
     Requires administrative privileges to reveal passwords.
     """
-    setup_logging()
 
     try:
         profiles, permission_errors = _gather_profiles()
     except Exception as exc:  # noqa: BLE001
         error_msg = str(exc)
-        
+
         # Check if it's a service-related error and provide cleaner output
         if "Windows Wi-Fi service issue:" in error_msg:
             # Extract just the helpful message without the prefix
             clean_msg = error_msg.replace("Windows Wi-Fi service issue:\n", "")
-            console.print(f"[red]❌ Wi-Fi Service Issue[/red]")
+            console.print("[red]❌ Wi-Fi Service Issue[/red]")
             console.print(f"[yellow]{clean_msg}[/yellow]")
         else:
             logger.exception(f"Failed to fetch Wi-Fi profiles: {exc}")
             console.print(f"[red]❌ Error:[/red] {error_msg}")
-        
+
         raise typer.Exit(code=1) from exc
 
     if output == "json":
@@ -227,16 +229,15 @@ def show_passwords(
 
     # Ensure printing doesn't trigger cp1252 encoding errors
     console.print(table, overflow="ignore", soft_wrap=False)
-    
+
     # Add informational message if there were permission errors
     if permission_errors > 0:
         console.print()
         console.print(
-            f"[yellow]![/yellow]  {permission_errors} network(s) require administrator privileges to reveal passwords."
+            f"[yellow]![/yellow]  {permission_errors} network(s) require"
+            " administrator privileges to reveal passwords."
         )
-        console.print(
-            "[dim]Run this command as Administrator to see all Wi-Fi passwords.[/dim]"
-        )
+        console.print("[dim]Run this command as Administrator to see all Wi-Fi passwords.[/dim]")
 
 
 @app.command("list-networks")
@@ -247,28 +248,27 @@ def list_networks(
         "-o",
         help="Optional output format: 'table' (default) or 'json'",
         metavar="FORMAT",
-    )
+    ),
 ) -> None:
     """
     List available Wi-Fi networks (Windows only).
     """
-    setup_logging()
 
     try:
         networks = _list_networks()
     except Exception as exc:  # noqa: BLE001
         error_msg = str(exc)
-        
+
         # Check if it's a service-related error and provide cleaner output
         if "Windows Wi-Fi service issue:" in error_msg:
             # Extract just the helpful message without the prefix
             clean_msg = error_msg.replace("Windows Wi-Fi service issue:\n", "")
-            console.print(f"[red]❌ Wi-Fi Service Issue[/red]")
+            console.print("[red]❌ Wi-Fi Service Issue[/red]")
             console.print(f"[yellow]{clean_msg}[/yellow]")
         else:
             logger.exception(f"Failed to fetch Wi-Fi networks: {exc}")
             console.print(f"[red]❌ Error:[/red] {error_msg}")
-        
+
         raise typer.Exit(code=1) from exc
 
     if output == "json":
@@ -287,7 +287,7 @@ def list_networks(
             network.get("ssid", "N/A"),
             network.get("type", "N/A"),
             network.get("authentication", "N/A"),
-            network.get("encryption", "N/A")
+            network.get("encryption", "N/A"),
         )
 
     # Ensure printing doesn't trigger cp1252 encoding errors

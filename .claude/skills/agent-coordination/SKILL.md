@@ -1,8 +1,15 @@
+---
+name: agent-coordination
+description: >
+  Orchestration protocol for multi-agent workflows. Use when coordinating work
+  across agents (code-reviewer, security-engineer, test-engineer), producing or
+  consuming reports, running sequential pipelines or parallel sweeps, or managing
+  the report registry and lifecycle.
+---
+
 # Agent Coordination Skill
 
 Orchestration protocol for multi-agent workflows in the **background-utils** project.
-Load this skill when coordinating work across agents (code-reviewer, security-engineer,
-test-engineer) or when you need to produce, consume, or archive reports.
 
 ## Available Agents
 
@@ -62,7 +69,7 @@ Valid statuses: `Active`, `Resolved`, `Superseded`, `Archived`
 
 ## Coordination Protocols
 
-### Sequential Pipeline (e.g., `/review-full`)
+### Sequential Pipeline (e.g., code-review skill)
 
 Run agents in order, each receiving the previous agent's report as context:
 
@@ -73,7 +80,7 @@ Run agents in order, each receiving the previous agent's report as context:
 4. Orchestrator summarizes all reports
 ```
 
-### Parallel Sweep (e.g., `/agents:ci`)
+### Parallel Sweep (e.g., ci-pipeline skill)
 
 Run independent checks concurrently:
 
@@ -122,8 +129,8 @@ Task(
 | TD-001 | Low test coverage (~56%) | High | All | Target: 85% |
 ```
 
-Agents may add new debt items when they discover issues. Use `/debt` command
-to view and manage the debt registry.
+Agents may add new debt items when they discover issues. Use the `tech-debt`
+skill to view and manage the debt registry.
 
 ## Session Initialization
 

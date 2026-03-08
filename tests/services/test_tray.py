@@ -456,7 +456,7 @@ class TestTrayPerformance:
 
         start_time = time.time()
 
-        tray = TrayController(manager_factory=manager_factory, log_path_provider=log_path_provider)
+        TrayController(manager_factory=manager_factory, log_path_provider=log_path_provider)
 
         creation_time = time.time() - start_time
         assert creation_time < 0.1  # Should create in under 100ms
@@ -628,7 +628,7 @@ class TestTrayEdgeCases:
         mock_item = MagicMock()
 
         # Rapid actions should be handled gracefully
-        for i in range(5):
+        for _i in range(5):
             tray._stop_services(mock_icon, mock_item)
             tray._restart_services(mock_icon, mock_item)
 

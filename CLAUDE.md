@@ -137,50 +137,39 @@ def run(stop_event: threading.Event) -> None:
 
 ### Skills (`.claude/skills/`)
 
+All workflows are implemented as auto-discoverable skills. Skills are loaded
+automatically based on context -- no slash-command invocation required.
+
+**Core Process Skills:**
 - **verification-before-completion**: Enforces evidence-based completion claims. Must run
-  verification commands (`pytest`, `ruff`, `mypy`, `openspec validate`) and confirm output
-  before claiming any task is done, fixed, or passing. Use before committing or marking
-  OpenSpec tasks complete.
-- **systematic-debugging**: Structured 4-phase debugging process (root cause investigation,
-  pattern analysis, hypothesis testing, implementation). Use before proposing fixes for any
-  bug, test failure, or unexpected behavior. Prevents random-fix thrashing.
+  verification commands and confirm output before claiming any task is done or passing.
+- **systematic-debugging**: Structured 4-phase debugging process. Use before proposing
+  fixes for any bug, test failure, or unexpected behavior.
 - **agent-coordination**: Orchestration protocol for multi-agent workflows. Defines the
-  report system, coordination protocols (sequential pipeline, parallel sweep), context
-  injection patterns, and session initialization. Load when coordinating across agents.
+  report system, coordination protocols, and context injection patterns.
+
+**Quality & Testing Skills:**
+- **test-runner**: Run tests with auto-detected runner and flexible scoping.
+- **ci-pipeline**: Run local CI pipeline (lint + type-check + test) before commits.
+- **code-review**: Multi-level code review (peer, architecture, security, reliability).
+- **security-scan**: Security vulnerability assessment via security-engineer agent.
+- **test-coverage**: Test coverage analysis via test-engineer agent.
+
+**Project Management Skills:**
+- **tech-debt**: View and manage the technical debt registry.
+- **release**: Version bump and release procedure using commitizen.
+- **report-archival**: Archive old report registry entries and report files.
+- **openspec-workflow**: Complete OpenSpec change lifecycle (proposal, apply, archive).
+- **session-context**: Initialize session context from codebase, OpenSpec, and reports.
 
 ### Agents (`.claude/agents/`)
 
 - **code-reviewer**: Senior code reviewer that checks implementations against OpenSpec
-  proposals, tasks.md, and project coding standards. Use after completing a significant
-  implementation step or feature. Reports issues by severity (critical/important/suggestion).
-- **security-engineer**: Security scanning and threat modeling. Modes: `scan` (OWASP Top 10,
-  CVE, secret detection, input validation) and `threat-model` (STRIDE, attack surface,
-  data flow). Focus areas: credential handling, IMAP connections, netsh commands,
-  %LOCALAPPDATA% file access.
+  proposals, tasks.md, and project coding standards. Reports issues by severity.
+- **security-engineer**: Security scanning and threat modeling. Modes: `scan` and
+  `threat-model`. Focus: credential handling, IMAP, netsh, %LOCALAPPDATA%.
 - **test-engineer**: Test execution and coverage analysis. Runs pytest suites, identifies
-  flaky tests, generates coverage reports, and recommends areas needing tests. Uses
-  project fixtures and coverage priority map.
-
-### Slash Commands
-
-**OpenSpec** (`.claude/commands/openspec/`):
-- `/openspec proposal` -- Scaffold a new OpenSpec change proposal
-- `/openspec apply` -- Implement an approved OpenSpec change
-- `/openspec archive` -- Archive a deployed OpenSpec change
-
-**Agent Orchestration** (`.claude/commands/agents/`):
-- `/agents:ci` -- Run CI pipeline (lint + type-check + test)
-- `/agents:review` -- Code review via code-reviewer agent
-- `/agents:security` -- Security scan via security-engineer agent
-- `/agents:coverage` -- Coverage analysis via test-engineer agent
-
-**Workflows** (`.claude/commands/`):
-- `/test` -- Run pytest with UV
-- `/review-full` -- 4-level review: peer, architecture, security, reliability
-- `/debt` -- View and manage tech debt registry
-- `/release` -- Version bump and release with commitizen
-- `/archive` -- Archive resolved reports to `.claude/reports/archive/`
-- `/session:context` -- Initialize session with active reports, tech debt, and OpenSpec state
+  flaky tests, generates coverage reports.
 
 ### Reports (`.claude/reports/`)
 
@@ -232,7 +221,7 @@ system. There is no separate memory-bank.
 
 ### Session Initialization
 
-At the start of a session, run `/session:context` or manually:
+At the start of a session, the `session-context` skill activates automatically, or manually:
 
 1. Read `.claude/reports/_registry.md` for active reports
 2. Read `.claude/reports/_tech-debt.md` for known issues

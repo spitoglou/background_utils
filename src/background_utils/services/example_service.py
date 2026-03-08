@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import threading
 import time
 
 from loguru import logger
@@ -8,7 +9,7 @@ from background_utils.config import load_settings
 from background_utils.logging import setup_logging
 
 
-def run(stop_event) -> None:  # type: ignore[no-untyped-def]
+def run(stop_event: threading.Event) -> None:
     """
     Example long-running service loop.
 

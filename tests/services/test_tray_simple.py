@@ -241,7 +241,7 @@ class TestTrayControllerSimple:
 
         start_time = time.time()
 
-        tray = TrayController(manager_factory=manager_factory, log_path_provider=log_path_provider)
+        TrayController(manager_factory=manager_factory, log_path_provider=log_path_provider)
 
         creation_time = time.time() - start_time
         assert creation_time < 0.1

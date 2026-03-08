@@ -125,12 +125,10 @@ class ServiceManager:
         for i, t in enumerate(self.threads):
             remaining = max(0.0, deadline - time.time())
             if remaining == 0.0:
-                logger.warning(
-                            "Timeout reached, skipping remaining threads"
-                        )
+                logger.warning("Timeout reached, skipping remaining threads")
                 break
             logger.info(
-                f"Joining thread {i+1}/{len(self.threads)}: {t.name} (timeout: {remaining:.1f}s)"
+                f"Joining thread {i + 1}/{len(self.threads)}: {t.name} (timeout: {remaining:.1f}s)"
             )
             t.join(timeout=remaining)
             if t.is_alive():
@@ -157,8 +155,10 @@ class ServiceManager:
 # -------------------- Tray Controller --------------------
 # Rewritten to use pystray exclusively. Removes all native win32 tray code.
 
+
 def _create_tray_image() -> object:
     from PIL import Image, ImageDraw
+
     size = 64
     img = Image.new("RGBA", (size, size), (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
@@ -168,9 +168,7 @@ def _create_tray_image() -> object:
 
 class TrayController:
     def __init__(
-        self, 
-        manager_factory: Callable[[], ServiceManager], 
-        log_path_provider: Callable[[], str]
+        self, manager_factory: Callable[[], ServiceManager], log_path_provider: Callable[[], str]
     ) -> None:
         self._image = _create_tray_image()
         self._manager_factory = manager_factory
@@ -197,7 +195,7 @@ class TrayController:
 
     def _stop_services(self, icon, item) -> None:
         logger.info("MENU: Stop Services clicked")
-        
+
         def _do_stop():
             logger.info("THREAD: _do_stop thread started")
             try:
@@ -225,7 +223,7 @@ class TrayController:
                 logger.exception(f"Error in _do_stop thread: {exc}")
             finally:
                 logger.info("THREAD: _do_stop thread exiting")
-        
+
         # Run in background to avoid blocking pystray event loop
         logger.info("Creating stop thread...")
         t = threading.Thread(target=_do_stop, name="tray-stop", daemon=True)
@@ -235,7 +233,7 @@ class TrayController:
 
     def _restart_services(self, icon, item) -> None:
         logger.info("MENU: Restart Services clicked")
-        
+
         def _do_restart():
             logger.info("THREAD: _do_restart thread started")
             try:
@@ -255,7 +253,7 @@ class TrayController:
                     # Wait for stop to complete
                     try:
                         logger.info("Waiting for stop to complete...")
-                        mgr._stopped_once.wait(timeout=5.0)  # type: ignore[attr-defined]
+                        mgr._stopped_once.wait(timeout=5.0)
                         logger.info("Stop completed, creating new manager...")
                     except Exception as exc:
                         logger.warning(f"Error waiting for stop: {exc!r}")
@@ -266,9 +264,7 @@ class TrayController:
                     if new_mgr:
                         logger.info("Starting new service manager...")
                         threading.Thread(
-                            target=new_mgr.run, 
-                            name="svc-restart", 
-                            daemon=False
+                            target=new_mgr.run, name="svc-restart", daemon=False
                         ).start()
                         logger.info("Restart Services completed")
                 else:
@@ -277,7 +273,7 @@ class TrayController:
                 logger.exception(f"Error in _do_restart thread: {exc}")
             finally:
                 logger.info("THREAD: _do_restart thread exiting")
-        
+
         # Run in background to avoid blocking pystray event loop
         logger.info("Creating restart thread...")
         t = threading.Thread(target=_do_restart, name="tray-restart", daemon=True)
@@ -287,7 +283,7 @@ class TrayController:
 
     def _exit_tray(self, icon, item) -> None:
         logger.info("MENU: Exit clicked")
-        
+
         def _do_exit():
             with self._lock:
                 self._exiting = True
@@ -308,7 +304,7 @@ class TrayController:
                 logger.debug(f"Issue stopping tray icon: {exc!r}")
             finally:
                 os._exit(0)
-        
+
         # Run in background to avoid blocking pystray event loop
         threading.Thread(target=_do_exit, name="tray-exit", daemon=True).start()
 
@@ -316,9 +312,10 @@ class TrayController:
         try:
             # Force Windows backend when available to avoid backend mismatch on Win11
             from pystray import Icon, Menu, MenuItem
+
             try:
                 # Hint import so pystray selects _win32 backend
-                import pystray._win32  # type: ignore  # noqa: F401
+                import pystray._win32  # noqa: F401
             except Exception:
                 pass
         except Exception as exc:
@@ -386,12 +383,10 @@ class TrayController:
 
         # Run in a separate thread so main thread can handle KeyboardInterrupt
         tray_thread = threading.Thread(
-            target=lambda: icon.run(setup=setup),
-            name="tray-main",
-            daemon=True
+            target=lambda: icon.run(setup=setup), name="tray-main", daemon=True
         )
         tray_thread.start()
-        
+
         # Give tray time to initialize
         time.sleep(1.0)
         logger.info("Tray thread started, entering main loop")
@@ -418,7 +413,6 @@ class TrayController:
             os._exit(0)
 
 
-
 def _windows_log_path() -> str:
     localappdata = os.getenv("LOCALAPPDATA") or "."
     return os.path.join(localappdata, "background-utils", "background-utils.log")
@@ -429,6 +423,7 @@ def _collect_default_services() -> list[ServiceSpec]:
     from background_utils.services.battery_monitor import run as battery_run
     from background_utils.services.example_service import run as example_run
     from background_utils.services.gmail_notifier import run as gmail_run
+
     try:
         from background_utils.services.my_service import (
             run as my_run,

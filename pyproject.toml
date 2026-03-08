@@ -82,3 +82,15 @@ warn_unused_configs = true
 warn_unreachable = true
 disallow_untyped_defs = true
 plugins = ["pydantic.mypy"]
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+disallow_untyped_decorators = false
+disallow_untyped_calls = false
+warn_return_any = false
+
+[[tool.mypy.overrides]]
+module = ["pystray", "pystray.*", "plyer", "plyer.*", "win10toast", "win10toast.*", "psutil", "psutil.*"]
+ignore_missing_imports = true

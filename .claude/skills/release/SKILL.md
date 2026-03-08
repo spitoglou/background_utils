@@ -1,7 +1,10 @@
 ---
-description: Execute version bump and release procedure
-allowed-tools: Bash
-argument-hint: [patch|minor|major|--dry-run]
+name: release
+description: >
+  Version bump and release procedure using commitizen with UV. Use when asked to
+  create a release, bump the version, tag a release, or prepare a changelog.
+  Covers pre-release checks, version bumping, changelog generation, and pushing
+  tags.
 ---
 
 # Release Procedure
@@ -10,7 +13,7 @@ Execute the release procedure using commitizen with UV.
 
 ## Pre-Release Checks
 
-Verify working tree is clean and tests pass:
+Verify working tree is clean and quality gate passes:
 
 ```bash
 git status
@@ -61,18 +64,9 @@ Preview changes without committing:
 uv run cz bump --dry-run
 ```
 
-## Arguments
+## Version Types
 
-- `patch` - Bump patch version (0.0.X)
-- `minor` - Bump minor version (0.X.0)
-- `major` - Bump major version (X.0.0)
-- `--dry-run` - Preview only, no changes
-- None - Auto-determine from conventional commits
-
-## Examples
-
-```
-/release              # Auto-determine from commits
-/release patch        # Force patch bump
-/release --dry-run    # Preview changes
-```
+- **patch** (0.0.X): Bug fixes, minor improvements
+- **minor** (0.X.0): New features, backward-compatible
+- **major** (X.0.0): Breaking changes
+- **auto**: Determined from conventional commit messages

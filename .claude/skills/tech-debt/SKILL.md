@@ -1,19 +1,14 @@
 ---
-description: View and manage tech debt registry
+name: tech-debt
+description: >
+  View and manage the technical debt registry. Use when asked about tech debt,
+  to add new debt items, resolve existing ones, review the debt backlog, or when
+  findings from reviews/scans need to be tracked as deferred work.
 ---
 
-# Tech Debt Command
+# Tech Debt Management
 
-Manage technical debt tracking.
-
-## Usage
-
-```
-/debt                          # View debt summary
-/debt add [description]        # Add new debt item
-/debt resolve [TD-NNN]         # Mark item resolved
-/debt review                   # Full registry review
-```
+Manage technical debt tracking via `.claude/reports/_tech-debt.md`.
 
 ## View Summary
 
@@ -25,10 +20,6 @@ Read `.claude/reports/_tech-debt.md` and display:
 ## By Priority
 | Priority | Count | Oldest |
 |----------|-------|--------|
-| Critical | [n] | [date] |
-| High | [n] | [date] |
-| Medium | [n] | [date] |
-| Low | [n] | [date] |
 
 ## Critical Items (Immediate Attention)
 [List critical items]
@@ -38,32 +29,20 @@ Read `.claude/reports/_tech-debt.md` and display:
 - [If oldest > 90 days]: Review and reprioritize stale items
 ```
 
-## Add Debt
-
-```
-/debt add "Description" --priority [critical|high|medium|low]
-```
+## Add Debt Item
 
 1. Get next TD number from `.claude/reports/_tech-debt.md`
 2. Add to appropriate priority section
 3. Report confirmation
 
-## Resolve Debt
+## Resolve Debt Item
 
-```
-/debt resolve TD-NNN
-```
-
-1. Find item in registry
+1. Find item by ID (e.g., TD-001) in registry
 2. Mark as `[x]`
 3. Move to Resolved section
 4. Add resolution date
 
 ## Full Review
-
-```
-/debt review
-```
 
 Audit the tech debt registry:
 
@@ -73,12 +52,12 @@ Audit the tech debt registry:
 4. Items that may no longer be relevant?
 5. Missing debt items based on codebase review?
 
-## Integration
+## Debt Sources
 
 Tech debt is created from:
-- `/review-full` findings marked "won't fix now"
-- `/agents:security` findings not immediately addressed
-- `/agents:coverage` gaps deferred to later
+- Code review findings marked "won't fix now"
+- Security scan findings not immediately addressed
+- Coverage gaps deferred to later
 - OpenSpec deferred requirements
 
 ## Debt Types
