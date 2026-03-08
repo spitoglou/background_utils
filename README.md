@@ -2,252 +2,166 @@
 
 Personal automation and production tools for Python 3.12+. Includes Typer-based CLIs and long-running services with Pydantic config, Loguru logging, and Rich output.
 
-## Quick start
+## Quick Start
 
-1) Install (with UV):
-    uv sync --extra dev
+```bash
+# 1. Install (with UV)
+uv sync --extra dev
 
-2) Run CLI:
-    background-utils --help
+# 2. Run CLI
+background-utils --help
 
-3) Run services with system tray (Windows):
-    background-utils-service
+# 3. Run services with system tray (Windows)
+background-utils-service
+```
 
-## Project structure
+## Project Structure
 
-- src/background_utils: package code
-  - cli: Typer app and commands
-  - services: long-running workers/daemons
-  - utils: shared helpers
-  - config.py: settings via pydantic-settings
-  - logging.py: loguru configuration
-- scripts: helpers for service process management
-- tests: pytest tests
+```
+src/background_utils/
+  cli/              # Typer app and commands
+  services/         # Long-running workers/daemons
+  utils.py          # Shared helpers (interruptible_sleep, etc.)
+  config.py         # Settings via pydantic-settings (BGU_ prefix)
+  logging.py        # Loguru + Rich configuration
+scripts/            # Dev/process helpers
+tests/              # pytest suite
+```
 
 ## Services and System Tray (Windows)
 
-The main service entry point `background-utils-service` launches a system tray icon that manages long-running services:
+The main entry point `background-utils-service` launches a system tray icon that manages long-running services:
 
-- **Tray Menu Options:**
-  - **View Log**: Opens the log file in Notepad (%LOCALAPPDATA%\background-utils\background-utils.log)
-  - **Stop Services**: Gracefully stops all running services
-  - **Restart Services**: Stops current services and starts fresh instances
-  - **Exit**: Stops services and exits the application
+**Tray Menu:**
+- **View Log** -- opens `%LOCALAPPDATA%\background-utils\background-utils.log` in Notepad
+- **Stop Services** -- gracefully stops all running services
+- **Restart Services** -- stops and re-launches services
+- **Exit** -- stops services and exits
 
-- **Service Management:**
-  - Services run on dedicated threads with cooperative shutdown via shared stop_event
-  - Graceful shutdown with 10-second timeout for each service
-  - Individual service entry points available for testing:
-    - background-utils-service-example
-    - background-utils-service-battery
-    - background-utils-service-gmail
-    - background-utils-service-my
+**Individual service entry points** (for testing):
 
-- **Windows Compatibility:**
-  - Fully functional on Windows 11 with reliable tray icon behavior
-  - No ghost icons - proper cleanup on exit
-  - Responsive tray menu with non-blocking operations
-  - Ctrl+C support for console-based shutdown
+```bash
+background-utils-service-example
+background-utils-service-battery
+background-utils-service-gmail
+background-utils-service-my
+```
+
+Services run on dedicated threads with cooperative shutdown via `stop_event` (10-second timeout per service).
 
 ## Gmail Notification Setup
 
-The Gmail notification service monitors your Gmail inbox and shows desktop notifications for new emails. To configure it securely:
+The Gmail service monitors your inbox and shows desktop notifications for new emails.
 
-### Step 1: Enable 2-Factor Authentication
+### 1. Enable 2-Factor Authentication
 
-1. Go to [Google Account Security](https://myaccount.google.com/security)
-2. Enable 2-Step Verification if not already enabled
-3. This is required for App Passwords
+Go to [Google Account Security](https://myaccount.google.com/security) and enable 2-Step Verification.
 
-### Step 2: Generate an App Password
+### 2. Generate an App Password
 
-1. In Google Account Security, go to **App passwords**
-2. Select **Mail** as the app and **Windows Computer** as the device
-3. Click **Generate** to create a 16-character app password
-4. Copy this password (you won't be able to see it again)
+In Google Account Security > **App passwords**, create a password for Mail on Windows Computer. Copy the 16-character password.
 
-### Step 3: Configure Environment Variables
+### 3. Configure Environment
 
-Add your Gmail credentials to the `.env` file:
+Add credentials to `.env`:
 
 ```bash
-# Gmail notification settings
 BGU_GMAIL_EMAIL=your-email@gmail.com
 BGU_GMAIL_PASSWORD=your-16-char-app-password
 ```
 
-**Security Notes:**
+**Security:** Never use your main Gmail password. Never commit `.env` (it's in `.gitignore`). The `gmail_password` field uses Pydantic `SecretStr` internally.
 
-- Never use your main Gmail password - always use App Passwords
-- Never commit the `.env` file to version control (it's already in .gitignore)
-- The app password only works for this specific application
-
-### Step 4: Test the Service
+### 4. Test
 
 ```bash
-# Test individual Gmail service
-background-utils-service-gmail
-
-# Or run with all services
-background-utils-service
+background-utils-service-gmail   # Individual
+background-utils-service         # All services
 ```
 
-The service will:
-
-- Check for new emails every 60 seconds
-- Show desktop notifications with sender and subject
-- Remember the last email processed (survives restarts)
-- Automatically reconnect on connection errors
+The service checks every 60 seconds, shows desktop notifications, persists UID state across restarts, and auto-reconnects on errors.
 
 **Troubleshooting:**
+- Authentication errors: verify the App Password
+- Missing notifications: check that `plyer` / `win10toast` are installed
+- Logs: `%LOCALAPPDATA%\background-utils\background-utils.log`
 
-- If you get authentication errors, verify the App Password is correct
-- If notifications don't appear, check that `plyer` and `win10toast` are installed
-- Check logs at `%LOCALAPPDATA%\background-utils\background-utils.log`
+## Wi-Fi Commands
 
-## Wi-Fi Command Troubleshooting
+`wifi show-passwords` and `wifi list-networks` require Windows Wireless AutoConfig Service.
 
-The Wi-Fi commands (`wifi show-passwords` and `wifi list-networks`) require the Windows Wireless AutoConfig Service to be running.
+If the service is not running:
 
-**Common Error:**
+```cmd
+:: Quick fix (temporary, run as Admin)
+net start wlansvc
 
-``` bash
-❌ Wi-Fi Service Issue
-The Wireless AutoConfig Service (wlansvc) is not running.
+:: Permanent fix
+sc config wlansvc start= auto
+net start wlansvc
 ```
 
-**Solution:**
-
-1. **Quick Fix (temporary):** Run as Administrator:
-
-   ```cmd
-   net start wlansvc
-   ```
-
-2. **Permanent Fix:** Enable the service to start automatically:
-
-   ```cmd
-   sc config wlansvc start= auto
-   net start wlansvc
-   ```
-
-**Additional Notes:**
-
-- The commands only work on Windows systems with Wi-Fi capability
-- `show-passwords` requires Administrator privileges to reveal passwords
-- On virtual machines or systems without Wi-Fi, these commands will show appropriate error messages
+`show-passwords` requires Administrator privileges. On VMs or systems without Wi-Fi, commands show appropriate errors.
 
 ## Development
 
-- Python 3.12+
-- Tooling: ruff, mypy, pytest, pytest-cov
+**Requirements:** Python 3.12+, UV
 
-Common commands:
+```bash
+# Install dev dependencies
+uv sync --extra dev
 
-- Lint:
-    uv run ruff check .
-- Type-check:
-    uv run mypy .
-- Tests:
-    uv run pytest
-- Tests with coverage:
-    uv run pytest --cov=src/background_utils --cov-report=term
-- Run specific test:
-    uv run pytest tests/services/test_gmail.py -v
-- Run Gmail service tests:
-    uv run pytest tests/services/test_gmail.py::TestGmailUtilities -v
-- Run tray controller tests:
-    uv run pytest tests/services/test_tray_simple.py -v
+# Lint
+uv run ruff check .
 
-## Testing Infrastructure
+# Type-check
+uv run mypy .
 
-The project includes comprehensive testing with:
+# Tests
+uv run pytest
 
-- **Test Coverage**: 25%+ and growing (target: 85%+)
-- **Gmail Service Tests**: 20+ tests covering core functionality
-- **Tray Controller Tests**: 10+ tests for menu actions and lifecycle
-- **Service Manager Tests**: Integration tests for multi-service scenarios
-- **CI/CD Pipeline**: GitHub Actions workflow with test matrix
+# Tests with coverage
+uv run pytest --cov=src/background_utils --cov-report=term-missing
+
+# Specific tests
+uv run pytest tests/services/test_gmail.py -v
+uv run pytest tests/services/test_gmail.py::TestGmailUtilities -v
+```
 
 ### Test Organization
 
 ```
 tests/
-├── services/             # Service tests
-│   ├── test_gmail.py      # Gmail notification service tests
-│   ├── test_tray.py       # Tray controller tests (comprehensive)
-│   └── test_tray_simple.py # Tray controller tests (simplified)
-├── conftest.py           # Shared fixtures and utilities
-└── test_suite.py         # Existing test suite
+  conftest.py             # Shared fixtures (mock IMAP, notifications, file system, GUI)
+  test_suite.py           # CLI and config tests
+  services/
+    test_gmail.py         # Gmail notification service (30+ tests)
+    test_tray.py          # Tray controller + service manager (40+ tests)
 ```
 
-### Running Tests
+### CI/CD
 
-```bash
-# Run all tests
-uv run pytest tests/ -v --tb=short
+GitHub Actions runs on push/PR to `main` and `mistral`:
+- **Matrix:** Python 3.12, 3.13 on Ubuntu and Windows
+- **Quality gates:** Ruff lint, Mypy type-check (source only), pytest with coverage
+- **Coverage:** Uploaded to Codecov from the 3.12/ubuntu cell
 
-# Run tests with coverage
-uv run pytest tests/ --cov=src/background_utils --cov-report=term
+See `.github/workflows/test_and_ci.yml`.
 
-# Run specific test module
-uv run pytest tests/services/test_gmail.py -v
+### Coverage Targets
 
-# Run specific test class
-uv run pytest tests/services/test_gmail.py::TestGmailUtilities -v
+| Scope | Target |
+|-------|--------|
+| Core modules (config, logging) | 90%+ |
+| Services | 85%+ |
+| CLI commands | 80%+ |
+| Overall | 85%+ |
 
-# Run specific test method
-uv run pytest tests/services/test_gmail.py::TestGmailUtilities::test_decode_email_header_simple -v
-```
-
-### Test Fixtures
-
-The test suite includes powerful fixtures:
-
-- **mock_imap_connection**: Mock IMAP4_SSL for Gmail testing
-- **mock_notifications**: Mock notification system with tracking
-- **mock_file_system**: Temporary file system for cache testing
-- **mock_gui_components**: Mock GUI components to prevent hanging
-- **quick_intervals**: Fast service intervals for testing
-
-### CI/CD Pipeline
-
-The project uses GitHub Actions for continuous integration:
-
-- **Test Matrix**: Python 3.12, 3.13 on Ubuntu and Windows
-- **Quality Gates**: Linting, type checking, test coverage
-- **Coverage Reporting**: Codecov integration
-- **Automated Testing**: Runs on push and pull requests
-
-See `.github/workflows/test_and_ci.yml` for details.
-
-## Test Coverage Goals
-
-- **Core Modules** (config, logging): 90%+
-- **Services**: 85%+
-- **CLI Commands**: 80%+
-- **Overall Project**: 85%+
-
-Current coverage can be checked with:
-```bash
-uv run pytest tests/ --cov=src/background_utils --cov-report=term
-```
+Current overall coverage: ~64% (82 tests passing).
 
 ## Packaging
 
-- pyproject.toml uses setuptools with package discovery under src/.
-- Entry points:
-  - background-utils: CLI
-  - background-utils-service: combined service manager with system tray
+`pyproject.toml` uses setuptools with `src/` layout. Entry points:
 
-## Development Tools
-
-This project's development was facilitated by AI code assisting tools including:
-
-- **Claude Code**: Interactive CLI development environment
-- **Claude Sonnet Models**: Code generation and architectural guidance
-- **Kilo Code**: Development assistance and code optimization
-- **Qwen3 Code Models**: Code analysis and improvement suggestions
-- **Kimi2 Models**: Development workflow automation
-
-These AI tools helped accelerate development, improve code quality, and provide architectural insights throughout the project lifecycle.
+- `background-utils` -- CLI
+- `background-utils-service` -- combined service manager with system tray

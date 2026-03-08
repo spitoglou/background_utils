@@ -9,21 +9,13 @@ Tracked improvements to address later. Created from reviews, postmortems, and de
   - **Source:** openspec/specs/testing/spec.md
   - **Created:** 2026-03-08
 
-- [ ] **TD-002**: CI workflow not yet implemented (GitHub Actions)
-  - **Impact:** High
-  - **Source:** openspec/specs/testing/spec.md
-  - **Created:** 2026-03-08
-
 ## Medium
 
 (none remaining)
 
 ## Low
 
-- [ ] **TD-005**: README lacks detailed usage, troubleshooting, and contribution guide
-  - **Impact:** Low
-  - **Source:** memory-bank migration
-  - **Created:** 2026-03-08
+(none remaining)
 
 ## Resolved
 
@@ -92,3 +84,9 @@ Tracked improvements to address later. Created from reviews, postmortems, and de
 
 - [x] **TD-025**: Empty test stubs and overlapping test files
   - **Resolved:** 2026-03-08 — Deleted redundant `test_tray_simple.py` (11 tests, all duplicates of `test_tray.py`). Implemented 3 gmail test stubs (`test_email_parsing_error`, `test_service_cleanup`, `test_service_isolation`). Removed `assert True` anti-patterns. Fixed `_decode_email_header` LookupError crash on invalid charsets. Test count: 94 → 82 (no coverage loss). Mypy test errors: 13 → 11.
+
+- [x] **TD-002**: CI workflow not yet implemented (GitHub Actions)
+  - **Resolved:** 2026-03-08 — Rewrote `.github/workflows/test_and_ci.yml`: UV via `astral-sh/setup-uv@v4`, matrix Python 3.12/3.13 on ubuntu+windows, combined test+coverage step, mypy scoped to `src/` (avoids test union-attr noise), real quality-gate job that checks upstream results.
+
+- [x] **TD-005**: README lacks detailed usage, troubleshooting, and contribution guide
+  - **Resolved:** 2026-03-08 — Rewrote README.md: removed stale references (deleted test_tray_simple.py, wrong coverage numbers), added proper code blocks for quick start, consolidated redundant sections, updated test counts and coverage to current state (64%, 82 tests), removed AI credits section.
